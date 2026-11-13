@@ -15871,10 +15871,11 @@ function _vStoreCheck() {
   var cont = document.getElementById('content');
   if (!cont) return;
   var today = _today();
-  cont.innerHTML = _skelKpi(3) + '<div style="padding:20px;text-align:center">Loading...</div>';
+  cont.innerHTML = '<div style="padding:40px;text-align:center">Loading Store Checklist...</div>';
 
   _gas('getStoreScores', [today, today], function (scoreRes) {
     var scores = (scoreRes && scoreRes.scores) || {};
+
     _gas('getStoreChecklist', [today, 'All'], function (res) {
       var tasks = (res && res.tasks) || [];
       var html = '';
@@ -15883,25 +15884,27 @@ function _vStoreCheck() {
       html += '<div class="kpi-grid" style="margin-bottom:16px">';
       ['Bandra', 'Atria', 'KG'].forEach(function (s) {
         var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
-        html += '<div class="kpi-card" onclick="_filterStore(\'' + s + '\')" style="cursor:pointer">' +
+        html += '<div class="kpi-card">' +
           '<div class="kpi-label">' + s + '</div>' +
-          '<div class="kpi-value">' + sc.pct + '%</div>' +
-          '<div class="kpi-sub">' + sc.done + '/' + sc.total + ' · ' + sc.scorePct + '% score</div></div>';
+          '<div class="kpi-value">' + (sc.pct || 0) + '%</div>' +
+          '<div class="kpi-sub">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · ' + (sc.scorePct || 0) + '% score</div></div>';
       });
       html += '</div>';
 
-      // Date + filter
-      html += '<div style="margin-bottom:12px;display:flex;gap:8px">' +
-        '<input type="date" id="scDate" value="' + today + '" onchange="_vStoreCheckDate(this.value)">' +
+      html += '<div style="margin-bottom:12px">' +
         '<button class="btn btn-sm" onclick="_showStoreAnalytics()">Analytics</button>' +
         '</div>';
 
-      html += '<div id="scTaskList" class="card"><div class="card-hd">Tasks</div><div class="card-bd">';
+      html += '<div class="card"><div class="card-hd">Today\'s Store Tasks</div><div class="card-bd">';
       html += _renderStoreTasks(tasks);
       html += '</div></div>';
 
       cont.innerHTML = html;
+    }, function (e) {
+      cont.innerHTML = '<div class="empty-state" style="color:red">Checklist error: ' + (e && e.message || 'Unknown') + '</div>';
     });
+  }, function (e) {
+    cont.innerHTML = '<div class="empty-state" style="color:red">Scores error: ' + (e && e.message || 'Unknown') + '</div>';
   });
 }
 
