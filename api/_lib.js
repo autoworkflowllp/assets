@@ -34,7 +34,13 @@ const ALLOWED = new Set([
   'updateCommitmentStatus', 'updateDelegationStatus',
   'updateEmployee', 'updateIncrementAppraisal',
   'updatePayrollStatus', 'validateGpsForAttendance',
-  'getSnapshot', 'clientForceSync'
+  'getSnapshot', 'clientForceSync',
+
+  // Store Checklist
+  'generateStoreChecklistDaily',
+  'getStoreChecklist',
+  'markStoreTaskDone',
+  'getStoreScores'
 ]);
 
 // These MUST never wait on GAS when a snapshot exists
