@@ -1933,7 +1933,8 @@ function _loadV(view, subTab) {
     delana: _vDelAna,
     attana: _vAttAna,
     muster: _vMuster,
-    payroll: _vPayroll
+    payroll: _vPayroll,
+    storecheck: _vStoreCheck,
   };
 
   // IMPORTANT: ensure content is always visible
@@ -1952,6 +1953,7 @@ function _loadV(view, subTab) {
     _debouncedPostRender();
   }, 80);
 }
+
 
 // MutationObserver: fires _initSearchSelects whenever new <select> elements
 // appear anywhere in the content area — covers async loads (analytics tabs,
@@ -15835,3 +15837,144 @@ function _isoLocal(d) {
   var day = d.getDate();
   return y + '-' + (m < 10 ? '0' : '') + m + '-' + (day < 10 ? '0' : '') + day;
 }
+
+
+function _markStoreTask(rowId) {
+  var remark = prompt('Remark (optional):') || '';
+  var photoBase64 = '';
+
+  // Simple photo capture (file input)
+  var inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.capture = 'environment';
+  inp.onchange = function () {
+    var file = inp.files[0];
+    if (!file) {
+      _doMarkStore(rowId, '', remark);
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function () {
+      photoBase64 = reader.result.split(',')[1];
+      _doMarkStore(rowId, photoBase64, remark);
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+
+//===============================================
+
+function _vStoreCheck() {
+  var cont = document.getElementById('content');
+  if (!cont) return;
+  var today = _today();
+  cont.innerHTML = _skelKpi(3) + '<div style="padding:20px;text-align:center">Loading...</div>';
+
+  _gas('getStoreScores', [today, today], function (scoreRes) {
+    var scores = (scoreRes && scoreRes.scores) || {};
+    _gas('getStoreChecklist', [today, 'All'], function (res) {
+      var tasks = (res && res.tasks) || [];
+      var html = '';
+
+      // Score cards
+      html += '<div class="kpi-grid" style="margin-bottom:16px">';
+      ['Bandra', 'Atria', 'KG'].forEach(function (s) {
+        var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
+        html += '<div class="kpi-card" onclick="_filterStore(\'' + s + '\')" style="cursor:pointer">' +
+          '<div class="kpi-label">' + s + '</div>' +
+          '<div class="kpi-value">' + sc.pct + '%</div>' +
+          '<div class="kpi-sub">' + sc.done + '/' + sc.total + ' · ' + sc.scorePct + '% score</div></div>';
+      });
+      html += '</div>';
+
+      // Date + filter
+      html += '<div style="margin-bottom:12px;display:flex;gap:8px">' +
+        '<input type="date" id="scDate" value="' + today + '" onchange="_vStoreCheckDate(this.value)">' +
+        '<button class="btn btn-sm" onclick="_showStoreAnalytics()">Analytics</button>' +
+        '</div>';
+
+      html += '<div id="scTaskList" class="card"><div class="card-hd">Tasks</div><div class="card-bd">';
+      html += _renderStoreTasks(tasks);
+      html += '</div></div>';
+
+      cont.innerHTML = html;
+    });
+  });
+}
+
+function _renderStoreTasks(tasks) {
+  if (!tasks.length) return '<div class="empty-state">No tasks</div>';
+  var h = '';
+  tasks.forEach(function (t) {
+    var done = String(t['Status']) === 'Done';
+    h += '<div class="task-row" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eee">' +
+      '<div style="flex:1">' +
+      '<div style="font-weight:600">' + _esc(t['Task']) + '</div>' +
+      '<div style="font-size:12px;color:#666">' + _esc(t['Store']) + ' · ' + _esc(t['Deadline'] || '-') + '</div>' +
+      (done ? '<div style="font-size:12px;color:green">✓ ' + _esc(t['Completed By Name'] || '') + ' · ' + _esc(t['On Time'] || '') + '</div>' : '') +
+      '</div>' +
+      (done
+        ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm">Photo</a>' : '<span class="badge badge-ok">Done</span>')
+        : '<button class="btn btn-sm btn-primary" onclick="_markStoreTask(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Mark Done</button>') +
+      '</div>';
+  });
+  return h;
+}
+
+function _markStoreTask(rowId, photoReq) {
+  var remark = prompt('Remark (optional):') || '';
+  if (photoReq === 'Yes') {
+    var inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*'; inp.capture = 'environment';
+    inp.onchange = function () {
+      var f = inp.files[0];
+      if (!f) return _toast('Photo required', 'err');
+      var reader = new FileReader();
+      reader.onload = function () {
+        _doMarkStore(rowId, reader.result.split(',')[1], remark);
+      };
+      reader.readAsDataURL(f);
+    };
+    inp.click();
+  } else {
+    _doMarkStore(rowId, '', remark);
+  }
+}
+
+function _doMarkStore(rowId, photoBase64, remark) {
+  _lbShow('Saving...');
+  _gas('markStoreTaskDone', [rowId, photoBase64, remark], function (r) {
+    _lbHide();
+    if (r && r.success) { _toast('Done', 'ok'); _vStoreCheck(); }
+    else _toast((r && r.error) || 'Failed', 'err');
+  }, function (e) { _lbHide(); _toast(e.message || 'Error', 'err'); });
+}
+
+function _showStoreAnalytics() {
+  var from = prompt('From date (yyyy-MM-dd)', _daysLater(-7)) || _daysLater(-7);
+  var to = prompt('To date (yyyy-MM-dd)', _today()) || _today();
+  _gas('getStoreScores', [from, to], function (res) {
+    var scores = (res && res.scores) || {};
+    var html = '<div class="card"><div class="card-hd">Store Analytics (' + from + ' to ' + to + ')</div><div class="card-bd">';
+    Object.keys(scores).forEach(function (s) {
+      var sc = scores[s];
+      html += '<div style="padding:12px 0;border-bottom:1px solid #eee"><b>' + s + '</b><br>' +
+        'Completion: ' + sc.pct + '% (' + sc.done + '/' + sc.total + ')<br>' +
+        'Score: ' + sc.scorePct + '%</div>';
+    });
+    html += '</div></div><button class="btn" onclick="_vStoreCheck()">Back</button>';
+    document.getElementById('content').innerHTML = html;
+  });
+}
+
+function _vStoreCheckDate(d) {
+  // simple reload with date — expand later if needed
+  _vStoreCheck();
+}
+
+
+
+
