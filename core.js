@@ -15983,21 +15983,54 @@ function _loadStoreAnalytics() {
   var box = document.getElementById('saResult');
   box.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b">Loading...</div>';
 
-  _gas('getStoreScores', [from, to], function (res) {
-    var scores = (res && res.scores) || {};
+  _gas('getStoreScores', [from, to], function (scoreRes) {
+    var scores = (scoreRes && scoreRes.scores) || {};
     var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px">';
     Object.keys(scores).forEach(function (s) {
       if (storeFilter !== 'All' && s !== storeFilter) return;
       var sc = scores[s];
       var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 50 ? '#f59e0b' : '#ef4444';
       html += '<div style="background:#fff;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:5px solid ' + clr + '">' +
-        '<div style="font-size:14px;font-weight:700;color:#0f172a">' + s + '</div>' +
-        '<div style="font-size:36px;font-weight:800;margin:8px 0;color:#0f172a">' + sc.pct + '%</div>' +
+        '<div style="font-size:14px;font-weight:700">' + s + '</div>' +
+        '<div style="font-size:36px;font-weight:800;margin:8px 0">' + sc.pct + '%</div>' +
         '<div style="font-size:13px;color:#64748b">' + sc.done + '/' + sc.total + ' completed</div>' +
-        '<div style="font-size:13px;color:#64748b;margin-top:4px">Score: ' + sc.scorePct + '%</div></div>';
+        '<div style="font-size:13px;color:#64748b">Score: ' + sc.scorePct + '%</div></div>';
     });
     html += '</div>';
-    box.innerHTML = html || '<div class="empty-state">No data for selected range</div>';
+
+    _gas('getStoreChecklistRange', [from, to, storeFilter === 'All' ? '' : storeFilter], function (rangeRes) {
+      var tasks = (rangeRes && rangeRes.tasks) || [];
+      var byDate = {};
+      tasks.forEach(function (t) {
+        var d = t.Date || t['Date'];
+        if (!byDate[d]) byDate[d] = [];
+        byDate[d].push(t);
+      });
+
+      html += '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)">';
+      html += '<div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;font-weight:700">Day-wise Details</div>';
+      html += '<div style="max-height:500px;overflow:auto">';
+
+      Object.keys(byDate).sort().reverse().forEach(function (d) {
+        var dayTasks = byDate[d];
+        var done = dayTasks.filter(function (t) { return String(t.Status) === 'Done'; }).length;
+        html += '<div style="padding:12px 20px;border-bottom:1px solid #f8fafc">' +
+          '<div style="font-weight:600">' + d + ' <span style="color:#64748b;font-weight:400">(' + done + '/' + dayTasks.length + ')</span></div>';
+        dayTasks.slice(0, 5).forEach(function (t) {
+          html += '<div style="font-size:13px;color:#475569;margin-left:8px;margin-top:4px">' +
+            _esc(t.Store) + ' · ' + _esc(t.Task) + ' · ' + (String(t.Status) === 'Done' ? '✓' : '○') +
+            (t['Completed By Name'] ? ' by ' + _esc(t['Completed By Name']) : '') +
+            '</div>';
+        });
+        if (dayTasks.length > 5) html += '<div style="font-size:12px;color:#94a3b8;margin-left:8px">+' + (dayTasks.length - 5) + ' more</div>';
+        html += '</div>';
+      });
+
+      html += '</div></div>';
+      box.innerHTML = html;
+    }, function () {
+      box.innerHTML = html + '<div style="color:#ef4444;padding:12px">Could not load day-wise details</div>';
+    });
   }, function (e) {
     box.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message || 'Failed') + '</div>';
   });
