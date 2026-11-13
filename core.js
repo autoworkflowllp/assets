@@ -15943,7 +15943,7 @@ function _vStoreCheck() {
       });
       html += '</div>';
 
-      html += '<div style="margin-bottom:16px"><button class="btn btn-sm btn-outline" onclick="_showStoreAnalytics()">View Analytics</button></div>';
+      // html += '<div style="margin-bottom:16px"><button class="btn btn-sm btn-outline" onclick="_showStoreAnalytics()">View Analytics</button></div>';
 
       html += '<div class="card" style="border-radius:12px;overflow:hidden"><div class="card-hd" style="background:#f8fafc;padding:14px 16px;font-weight:700">Today\'s Store Tasks</div><div class="card-bd" style="padding:0">';
       html += _renderStoreTasks(tasks);
@@ -15978,18 +15978,31 @@ function _renderStoreTasks(tasks) {
 }
 
 function _openMarkModal(rowId, photoReq) {
+  var existing = document.getElementById('markModal');
+  if (existing) existing.remove();
+
   var modal = document.createElement('div');
   modal.id = 'markModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-  modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:400px">' +
-    '<h3 style="margin:0 0 16px;font-size:18px">Mark Task Done</h3>' +
-    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px"></textarea>' +
-    (photoReq === 'Yes' ? '<input type="file" id="markPhoto" accept="image/*" capture="environment" style="margin-bottom:16px">' : '') +
-    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-    '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
-    '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',\'' + photoReq + '\')">Submit</button>' +
-    '</div></div>';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:420px;box-shadow:0 10px 40px rgba(0,0,0,.2)">' +
+      '<h3 style="margin:0 0 16px;font-size:18px;font-weight:700">Mark Task Done</h3>' +
+      '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px;font-size:14px"></textarea>' +
+      (photoReq === 'Yes' ? '<div style="margin-bottom:16px"><label style="font-size:13px;color:#64748b">Photo required</label><br><input type="file" id="markPhoto" accept="image/*" capture="environment" style="margin-top:6px"></div>' : '') +
+      '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+        '<button class="btn btn-outline" id="markCancelBtn">Cancel</button>' +
+        '<button class="btn btn-primary" id="markSubmitBtn">Submit</button>' +
+      '</div>' +
+    '</div>';
+
   document.body.appendChild(modal);
+
+  document.getElementById('markCancelBtn').onclick = function () {
+    modal.remove();
+  };
+  document.getElementById('markSubmitBtn').onclick = function () {
+    _submitMark(rowId, photoReq);
+  };
 }
 
 function _submitMark(rowId, photoReq) {
@@ -16025,10 +16038,12 @@ function _submitMark(rowId, photoReq) {
 
 
 function _vStoreAnalytics() {
-  if (!_isOwner() && !_U.role !== 'MANAGER') {
+  var role = String(_U.role || '').toUpperCase();
+  if (role !== 'OWNER' && role !== 'MANAGER' && role !== 'ADMIN' && role !== 'EA') {
     document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
     return;
   }
+
   var cont = document.getElementById('content');
   var today = _today();
   var from = _daysLater(-7);
