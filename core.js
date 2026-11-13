@@ -15918,53 +15918,6 @@ function _vStoreCheckDate(d) {
   _vStoreCheck();
 }
 
-function _vStoreAnalytics() {
-  var role = String(_U.role || '').toUpperCase();
-  if (role !== 'OWNER' && role !== 'MANAGER' && role !== 'ADMIN' && role !== 'EA') {
-    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
-    return;
-  }
-
-  var cont = document.getElementById('content');
-  var today = _today();
-  var from = _daysLater(-7);
-  cont.innerHTML = '<div style="padding:20px">Loading analytics...</div>';
-
-  var html = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">' +
-    '<input type="date" id="saFrom" value="' + from + '">' +
-    '<input type="date" id="saTo" value="' + today + '">' +
-    '<select id="saStore"><option value="All">All Stores</option><option>Bandra</option><option>Atria</option><option>KG</option></select>' +
-    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button>' +
-    '</div><div id="saResult"></div>';
-  cont.innerHTML = html;
-  _loadStoreAnalytics();
-}
-
-function _loadStoreAnalytics() {
-  var from = document.getElementById('saFrom').value;
-  var to = document.getElementById('saTo').value;
-  var store = document.getElementById('saStore').value;
-  var box = document.getElementById('saResult');
-  box.innerHTML = 'Loading...';
-
-  _gas('getStoreScores', [from, to], function (res) {
-    var scores = (res && res.scores) || {};
-    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">';
-    Object.keys(scores).forEach(function (s) {
-      if (store !== 'All' && s !== store) return;
-      var sc = scores[s];
-      html += '<div class="card" style="padding:16px"><div style="font-weight:700">' + s + '</div>' +
-        '<div style="font-size:24px;margin:8px 0">' + sc.pct + '%</div>' +
-        '<div style="font-size:13px;color:#666">' + sc.done + '/' + sc.total + ' completed<br>Score: ' + sc.scorePct + '%</div></div>';
-    });
-    html += '</div>';
-    box.innerHTML = html || '<div class="empty-state">No data</div>';
-  }, function (e) {
-    box.innerHTML = '<div style="color:red">Error: ' + (e.message || '') + '</div>';
-  });
-}
-
-
 var _scCache = { scores: null, tasks: null, ts: 0 };
 
 function _vStoreCheck(force) {
@@ -16027,21 +15980,23 @@ function _renderStoreTasks(tasks) {
 function _openMarkModal(rowId, photoReq) {
   var old = document.getElementById('markModal');
   if (old) old.remove();
+
+  var needPhoto = (photoReq === 'Yes' || photoReq === 'yes' || photoReq === true);
   var m = document.createElement('div');
   m.id = 'markModal';
-  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center';
-  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:20px;width:90%;max-width:380px">' +
-    '<div style="font-weight:700;margin-bottom:12px">Mark Done</div>' +
-    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:70px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px"></textarea>' +
-    (photoReq === 'Yes' ? '<input type="file" id="markPhoto" accept="image/*" capture="environment" style="margin-bottom:12px;width:100%">' : '') +
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999999;display:flex;align-items:center;justify-content:center';
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,.25)">' +
+    '<div style="font-size:17px;font-weight:700;margin-bottom:16px">Mark Done</div>' +
+    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px;font-size:14px"></textarea>' +
+    (needPhoto ? '<div style="margin-bottom:16px"><div style="font-size:13px;color:#64748b;margin-bottom:6px">Upload Photo</div><input type="file" id="markPhoto" accept="image/*" capture="environment" style="width:100%;padding:8px;border:1px dashed #cbd5e1;border-radius:8px"></div>' : '') +
     '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-      '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
-      '<button class="btn btn-primary btn-sm" onclick="_submitMark(\'' + rowId + '\',\'' + photoReq + '\')">Submit</button>' +
+      '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
     '</div></div>';
   document.body.appendChild(m);
 }
 
-function _submitMark(rowId, photoReq) {
+function _submitMark(rowId, needPhoto) {
   var remark = (document.getElementById('markRemark') || {}).value || '';
   var fileEl = document.getElementById('markPhoto');
   var modal = document.getElementById('markModal');
@@ -16051,17 +16006,64 @@ function _submitMark(rowId, photoReq) {
     _lbShow('Saving...');
     _gas('markStoreTaskDone', [rowId, b64 || '', remark], function (r) {
       _lbHide();
-      if (r && r.success) {
-        _toast('Done', 'ok');
-        _scCache.ts = 0; // force refresh
-        _vStoreCheck(true);
-      } else _toast((r && r.error) || 'Failed', 'err');
+      if (r && r.success) { _toast('Done', 'ok'); _scCache.ts = 0; _vStoreCheck(true); }
+      else _toast((r && r.error) || 'Failed', 'err');
     }, function (e) { _lbHide(); _toast(e.message || 'Error', 'err'); });
   }
 
-  if (photoReq === 'Yes' && fileEl && fileEl.files[0]) {
+  if (needPhoto && fileEl && fileEl.files && fileEl.files[0]) {
     var reader = new FileReader();
     reader.onload = function () { go(reader.result.split(',')[1]); };
     reader.readAsDataURL(fileEl.files[0]);
-  } else go('');
+  } else {
+    go('');
+  }
 }
+
+function _vStoreAnalytics() {
+  var role = String(_U.role || '').toUpperCase();
+  if (!['OWNER','MANAGER','ADMIN','EA'].includes(role)) {
+    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
+    return;
+  }
+  var cont = document.getElementById('content');
+  var today = _today();
+  var from = _daysLater(-6);
+  cont.innerHTML = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+    '<input type="date" id="saFrom" value="' + from + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
+    '<input type="date" id="saTo" value="' + today + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
+    '<select id="saStore" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0"><option value="All">All Stores</option><option>Bandra</option><option>Atria</option><option>KG</option></select>' +
+    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button>' +
+    '</div><div id="saResult"></div>';
+  _loadStoreAnalytics();
+}
+
+function _loadStoreAnalytics() {
+  var from = document.getElementById('saFrom').value;
+  var to = document.getElementById('saTo').value;
+  var storeFilter = document.getElementById('saStore').value;
+  var box = document.getElementById('saResult');
+  box.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b">Loading...</div>';
+
+  _gas('getStoreScores', [from, to], function (res) {
+    var scores = (res && res.scores) || {};
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px">';
+    Object.keys(scores).forEach(function (s) {
+      if (storeFilter !== 'All' && s !== storeFilter) return;
+      var sc = scores[s];
+      var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 50 ? '#f59e0b' : '#ef4444';
+      html += '<div style="background:#fff;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-left:5px solid ' + clr + '">' +
+        '<div style="font-size:14px;font-weight:700;color:#0f172a">' + s + '</div>' +
+        '<div style="font-size:36px;font-weight:800;margin:8px 0;color:#0f172a">' + sc.pct + '%</div>' +
+        '<div style="font-size:13px;color:#64748b">' + sc.done + '/' + sc.total + ' completed</div>' +
+        '<div style="font-size:13px;color:#64748b;margin-top:4px">Score: ' + sc.scorePct + '%</div></div>';
+    });
+    html += '</div>';
+    box.innerHTML = html || '<div class="empty-state">No data for selected range</div>';
+  }, function (e) {
+    box.innerHTML = '<div style="color:#ef4444;padding:20px">Error: ' + (e.message || 'Failed') + '</div>';
+  });
+}
+
+
+
