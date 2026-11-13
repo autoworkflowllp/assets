@@ -15964,49 +15964,62 @@ function _loadStoreAnalytics() {
   });
 }
 
-function _vStoreCheck() {
+
+var _scCache = { scores: null, tasks: null, ts: 0 };
+
+function _vStoreCheck(force) {
   var cont = document.getElementById('content');
   if (!cont) return;
   var today = _today();
-  cont.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b">Loading Store Checklist...</div>';
+  var now = Date.now();
+
+  // Instant render from cache if available (< 30 sec old)
+  if (!force && _scCache.tasks && (now - _scCache.ts < 30000)) {
+    _renderStoreUI(_scCache.scores, _scCache.tasks);
+    return;
+  }
+
+  cont.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b">Loading...</div>';
 
   _gas('getStoreScores', [today, today], function (scoreRes) {
     var scores = (scoreRes && scoreRes.scores) || {};
     _gas('getStoreChecklist', [today, 'All'], function (res) {
       var tasks = (res && res.tasks) || [];
-      var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">';
-      ['Bandra', 'Atria', 'KG'].forEach(function (s) {
-        var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
-        var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 40 ? '#f59e0b' : '#ef4444';
-        html += '<div style="background:#fff;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border-top:4px solid ' + clr + '">' +
-          '<div style="font-size:13px;font-weight:600;color:#64748b">' + s + '</div>' +
-          '<div style="font-size:32px;font-weight:800;margin:6px 0;color:#0f172a">' + (sc.pct || 0) + '%</div>' +
-          '<div style="font-size:12px;color:#94a3b8">' + (sc.done || 0) + '/' + (sc.total || 0) + ' done · Score ' + (sc.scorePct || 0) + '%</div></div>';
-      });
-      html += '</div>';
-
-      html += '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.08)">' +
-        '<div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;font-weight:700;font-size:16px">Today\'s Store Tasks</div>' +
-        '<div id="scTaskList">' + _renderStoreTasks(tasks) + '</div></div>';
-
-      cont.innerHTML = html;
+      _scCache = { scores: scores, tasks: tasks, ts: Date.now() };
+      _renderStoreUI(scores, tasks);
     });
   });
 }
 
+function _renderStoreUI(scores, tasks) {
+  var cont = document.getElementById('content');
+  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px">';
+  ['Bandra', 'Atria', 'KG'].forEach(function (s) {
+    var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
+    var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 40 ? '#f59e0b' : '#ef4444';
+    html += '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.06);border-top:3px solid ' + clr + '">' +
+      '<div style="font-size:12px;font-weight:600;color:#64748b">' + s + '</div>' +
+      '<div style="font-size:28px;font-weight:800;margin:4px 0">' + (sc.pct || 0) + '%</div>' +
+      '<div style="font-size:11px;color:#94a3b8">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · ' + (sc.scorePct || 0) + '% score</div></div>';
+  });
+  html += '</div><div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)">' +
+    '<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;font-weight:700">Today\'s Tasks</div>' +
+    '<div id="scList">' + _renderStoreTasks(tasks) + '</div></div>';
+  cont.innerHTML = html;
+}
+
 function _renderStoreTasks(tasks) {
-  if (!tasks.length) return '<div style="padding:40px;text-align:center;color:#94a3b8">No tasks for today</div>';
-  return tasks.map(function (t, i) {
+  if (!tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
+  return tasks.map(function (t) {
     var done = String(t.Status) === 'Done';
-    return '<div style="display:flex;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid #f8fafc;' + (i % 2 ? 'background:#fafafa' : '') + '">' +
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f8fafc">' +
       '<div style="flex:1">' +
-        '<div style="font-weight:600;font-size:15px;color:#0f172a">' + _esc(t.Task) + '</div>' +
-        '<div style="font-size:12px;color:#64748b;margin-top:4px">' + _esc(t.Store) + ' · Deadline ' + _esc(t.Deadline || '-') + '</div>' +
-        (done ? '<div style="font-size:12px;color:#10b981;margin-top:6px">✓ ' + _esc(t['Completed By Name'] || '') + ' · ' + _esc(t['On Time'] || '') + '</div>' : '') +
+        '<div style="font-weight:600">' + _esc(t.Task) + '</div>' +
+        '<div style="font-size:12px;color:#64748b">' + _esc(t.Store) + ' · ' + _esc(t.Deadline || '-') + '</div>' +
+        (done ? '<div style="font-size:11px;color:#10b981;margin-top:4px">✓ ' + _esc(t['Completed By Name'] || '') + '</div>' : '') +
       '</div>' +
-      (done
-        ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm btn-outline">Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600">Done</span>')
-        : '<button class="btn btn-sm btn-primary" data-row="' + _esc(t['Row ID']) + '" data-photo="' + _esc(t['Photo Required'] || 'No') + '" onclick="_openMarkModal(this.dataset.row, this.dataset.photo)">Mark Done</button>') +
+      (done ? '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600">Done</span>'
+            : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
       '</div>';
   }).join('');
 }
@@ -16014,17 +16027,16 @@ function _renderStoreTasks(tasks) {
 function _openMarkModal(rowId, photoReq) {
   var old = document.getElementById('markModal');
   if (old) old.remove();
-
   var m = document.createElement('div');
   m.id = 'markModal';
-  m.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:100000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
-  m.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px;width:92%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3)">' +
-    '<div style="font-size:18px;font-weight:700;margin-bottom:16px">Mark Task Done</div>' +
-    '<textarea id="markRemark" placeholder="Add a remark (optional)" style="width:100%;height:90px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:16px;font-size:14px;resize:none"></textarea>' +
-    (photoReq === 'Yes' ? '<div style="margin-bottom:20px"><div style="font-size:13px;color:#64748b;margin-bottom:6px">Photo required</div><input type="file" id="markPhoto" accept="image/*" capture="environment" style="width:100%"></div>' : '') +
-    '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-      '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
-      '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',\'' + photoReq + '\')">Submit</button>' +
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center';
+  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:20px;width:90%;max-width:380px">' +
+    '<div style="font-weight:700;margin-bottom:12px">Mark Done</div>' +
+    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:70px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px"></textarea>' +
+    (photoReq === 'Yes' ? '<input type="file" id="markPhoto" accept="image/*" capture="environment" style="margin-bottom:12px;width:100%">' : '') +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+      '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="_submitMark(\'' + rowId + '\',\'' + photoReq + '\')">Submit</button>' +
     '</div></div>';
   document.body.appendChild(m);
 }
@@ -16034,21 +16046,22 @@ function _submitMark(rowId, photoReq) {
   var fileEl = document.getElementById('markPhoto');
   var modal = document.getElementById('markModal');
 
-  function finish(b64) {
+  function go(b64) {
     if (modal) modal.remove();
     _lbShow('Saving...');
     _gas('markStoreTaskDone', [rowId, b64 || '', remark], function (r) {
       _lbHide();
-      if (r && r.success) { _toast('Marked done', 'ok'); _vStoreCheck(); }
-      else _toast((r && r.error) || 'Failed', 'err');
+      if (r && r.success) {
+        _toast('Done', 'ok');
+        _scCache.ts = 0; // force refresh
+        _vStoreCheck(true);
+      } else _toast((r && r.error) || 'Failed', 'err');
     }, function (e) { _lbHide(); _toast(e.message || 'Error', 'err'); });
   }
 
-  if (photoReq === 'Yes' && fileEl && fileEl.files && fileEl.files[0]) {
+  if (photoReq === 'Yes' && fileEl && fileEl.files[0]) {
     var reader = new FileReader();
-    reader.onload = function () { finish(reader.result.split(',')[1]); };
+    reader.onload = function () { go(reader.result.split(',')[1]); };
     reader.readAsDataURL(fileEl.files[0]);
-  } else {
-    finish('');
-  }
+  } else go('');
 }
