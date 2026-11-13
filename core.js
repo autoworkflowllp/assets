@@ -15923,30 +15923,48 @@ var _scCache = { scores: null, tasks: null, ts: 0 };
 
 function _renderStoreTasks(tasks) {
   if (!tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
+
+  function to12h(hm) {
+    if (!hm || hm === 'As needed') return hm || '-';
+    var p = String(hm).split(':');
+    var h = parseInt(p[0], 10);
+    var m = p[1] || '00';
+    var ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + ap;
+  }
+
   return tasks.map(function (t) {
     var done = String(t.Status) === 'Done';
+    var planned = to12h(t.Deadline);
+    var actualHm = done && t['Completed At'] ? String(t['Completed At']).slice(11, 16) : '';
+    var actual = actualHm ? to12h(actualHm) : '';
+
     var delayHtml = '';
-    if (done && t['Completed At'] && t.Deadline && t.Deadline !== 'As needed') {
-      var planned = t.Deadline;
-      var actual = String(t['Completed At']).slice(11, 16); // HH:mm
-      if (actual > planned) {
-        delayHtml = '<div style="font-size:11px;color:#ef4444;margin-top:2px">Delay: ' + actual + ' (planned ' + planned + ')</div>';
+    if (done && actualHm && t.Deadline && t.Deadline !== 'As needed') {
+      var pMins = parseInt(t.Deadline.split(':')[0]) * 60 + parseInt(t.Deadline.split(':')[1] || 0);
+      var aMins = parseInt(actualHm.split(':')[0]) * 60 + parseInt(actualHm.split(':')[1] || 0);
+      var diff = aMins - pMins;
+      if (diff > 0) {
+        var dh = Math.floor(diff / 60);
+        var dm = diff % 60;
+        delayHtml = '<div style="font-size:12px;color:#ef4444;margin-top:4px">Delay: ' + (dh < 10 ? '0' : '') + dh + ':' + (dm < 10 ? '0' : '') + dm + ':00 (Actual ' + actual + ')</div>';
       } else {
-        delayHtml = '<div style="font-size:11px;color:#10b981;margin-top:2px">On time · ' + actual + '</div>';
+        delayHtml = '<div style="font-size:12px;color:#10b981;margin-top:4px">On time · Actual ' + actual + '</div>';
       }
-    } else if (done && t['Completed At']) {
-      delayHtml = '<div style="font-size:11px;color:#64748b;margin-top:2px">Done at ' + String(t['Completed At']).slice(11, 16) + '</div>';
+    } else if (done && actual) {
+      delayHtml = '<div style="font-size:12px;color:#64748b;margin-top:4px">Done at ' + actual + '</div>';
     }
 
-    return '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
+    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
       '<div style="flex:1">' +
-        '<div style="font-weight:600;font-size:15px">' + _esc(t.Task) + '</div>' +
-        '<div style="font-size:12px;color:#64748b;margin-top:3px">' + _esc(t.Store) + ' · Planned ' + _esc(t.Deadline || '-') + '</div>' +
-        (done ? '<div style="font-size:12px;color:#10b981;margin-top:4px">✓ ' + _esc(t['Completed By Name'] || '') + '</div>' + delayHtml : '') +
+        '<div style="font-weight:600;font-size:15px;color:#0f172a">' + _esc(t.Task) + '</div>' +
+        '<div style="font-size:13px;color:#475569;margin-top:4px">Store : ' + _esc(t.Store) + ' · Planned ' + planned + '</div>' +
+        (done ? '<div style="font-size:13px;color:#10b981;margin-top:4px">Done by : ✓ ' + _esc(t['Completed By Name'] || '') + '</div>' + delayHtml : '') +
       '</div>' +
       (done
-        ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm btn-outline" style="border-radius:8px">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600">Done</span>')
-        : '<button class="btn btn-sm btn-primary" style="border-radius:8px" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
+        ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm btn-outline" style="border-radius:8px;align-self:center">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;align-self:center">Done</span>')
+        : '<button class="btn btn-sm btn-primary" style="border-radius:8px;align-self:center" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
       '</div>';
   }).join('');
 }
