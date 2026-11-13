@@ -40,7 +40,8 @@ const ALLOWED = new Set([
   'generateStoreChecklistDaily',
   'getStoreChecklist',
   'markStoreTaskDone',
-  'getStoreScores'
+  'getStoreScores',
+  'getStoreChecklistRange'
 ]);
 
 // These MUST never wait on GAS when a snapshot exists
