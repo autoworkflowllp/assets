@@ -29,11 +29,11 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
   <!-- ── App Config: GAS_URL aur constants — sirf yahan change karo ── -->
   <script src="appconfig.js"></script>
-  
+
   <!-- Firebase client — live ver listener (Phase 2) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
-  
+
   <!-- ── App Core: GAS bridge + date/string utilities ── -->
   <script src="app.js"></script>
   <!-- Early session check: prevents login screen flash when valid session exists -->
@@ -208,6 +208,9 @@
           <div class="nv" id="nv-check" onclick="_loadV('check')">
             <i class="fas fa-list-check"></i> Checklist
           </div>
+          <div class="nv" id="nv-storecheck" onclick="_loadV('storecheck')">
+            <i class="fas fa-store"></i> Store Checklist
+          </div>
           <div class="nv" id="nv-deleg" onclick="_loadV('deleg')">
             <i class="fas fa-people-arrows"></i> Delegation
           </div>
@@ -298,11 +301,10 @@
             <i class="fas fa-rotate-right"></i>
           </button>
           <!-- Manager: clear GAS cache + force Firebase snapshot -->
-       <button class="ico-btn" id="tbCacheBtn" onclick="_forcePortalCacheClear()"
-  title="Clear cache & load latest data"
-  style="display:none">
-  <i class="fas fa-rotate" id="tbCacheIco"></i>
-</button>
+          <button class="ico-btn" id="tbCacheBtn" onclick="_forcePortalCacheClear()"
+            title="Clear cache & load latest data" style="display:none">
+            <i class="fas fa-rotate" id="tbCacheIco"></i>
+          </button>
         </div>
       </header>
 
