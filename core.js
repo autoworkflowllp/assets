@@ -15864,68 +15864,7 @@ function _markStoreTask(rowId) {
   inp.click();
 }
 
-
 //===============================================
-
-function _vStoreCheck() {
-  var cont = document.getElementById('content');
-  if (!cont) return;
-  var today = _today();
-  cont.innerHTML = '<div style="padding:40px;text-align:center">Loading Store Checklist...</div>';
-
-  _gas('getStoreScores', [today, today], function (scoreRes) {
-    var scores = (scoreRes && scoreRes.scores) || {};
-
-    _gas('getStoreChecklist', [today, 'All'], function (res) {
-      var tasks = (res && res.tasks) || [];
-      var html = '';
-
-      // Score cards
-      html += '<div class="kpi-grid" style="margin-bottom:16px">';
-      ['Bandra', 'Atria', 'KG'].forEach(function (s) {
-        var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
-        html += '<div class="kpi-card">' +
-          '<div class="kpi-label">' + s + '</div>' +
-          '<div class="kpi-value">' + (sc.pct || 0) + '%</div>' +
-          '<div class="kpi-sub">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · ' + (sc.scorePct || 0) + '% score</div></div>';
-      });
-      html += '</div>';
-
-      html += '<div style="margin-bottom:12px">' +
-        '<button class="btn btn-sm" onclick="_showStoreAnalytics()">Analytics</button>' +
-        '</div>';
-
-      html += '<div class="card"><div class="card-hd">Today\'s Store Tasks</div><div class="card-bd">';
-      html += _renderStoreTasks(tasks);
-      html += '</div></div>';
-
-      cont.innerHTML = html;
-    }, function (e) {
-      cont.innerHTML = '<div class="empty-state" style="color:red">Checklist error: ' + (e && e.message || 'Unknown') + '</div>';
-    });
-  }, function (e) {
-    cont.innerHTML = '<div class="empty-state" style="color:red">Scores error: ' + (e && e.message || 'Unknown') + '</div>';
-  });
-}
-
-function _renderStoreTasks(tasks) {
-  if (!tasks.length) return '<div class="empty-state">No tasks</div>';
-  var h = '';
-  tasks.forEach(function (t) {
-    var done = String(t['Status']) === 'Done';
-    h += '<div class="task-row" style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #eee">' +
-      '<div style="flex:1">' +
-      '<div style="font-weight:600">' + _esc(t['Task']) + '</div>' +
-      '<div style="font-size:12px;color:#666">' + _esc(t['Store']) + ' · ' + _esc(t['Deadline'] || '-') + '</div>' +
-      (done ? '<div style="font-size:12px;color:green">✓ ' + _esc(t['Completed By Name'] || '') + ' · ' + _esc(t['On Time'] || '') + '</div>' : '') +
-      '</div>' +
-      (done
-        ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm">Photo</a>' : '<span class="badge badge-ok">Done</span>')
-        : '<button class="btn btn-sm btn-primary" onclick="_markStoreTask(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Mark Done</button>') +
-      '</div>';
-  });
-  return h;
-}
 
 function _markStoreTask(rowId, photoReq) {
   var remark = prompt('Remark (optional):') || '';
@@ -15976,6 +15915,111 @@ function _showStoreAnalytics() {
 function _vStoreCheckDate(d) {
   // simple reload with date — expand later if needed
   _vStoreCheck();
+}
+
+function _vStoreCheck() {
+  var cont = document.getElementById('content');
+  if (!cont) return;
+  var today = _today();
+  cont.innerHTML = '<div style="padding:40px;text-align:center;color:#666">Loading Store Checklist...</div>';
+
+  _gas('getStoreScores', [today, today], function (scoreRes) {
+    var scores = (scoreRes && scoreRes.scores) || {};
+    _gas('getStoreChecklist', [today, 'All'], function (res) {
+      var tasks = (res && res.tasks) || [];
+      var html = '';
+
+      // Score cards - better design
+      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">';
+      ['Bandra', 'Atria', 'KG'].forEach(function (s) {
+        var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
+        var color = sc.pct >= 80 ? '#10b981' : sc.pct >= 50 ? '#f59e0b' : '#ef4444';
+        html += '<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.1);border-left:4px solid ' + color + '">' +
+          '<div style="font-size:13px;color:#666;font-weight:600">' + s + '</div>' +
+          '<div style="font-size:28px;font-weight:800;margin:4px 0">' + (sc.pct || 0) + '%</div>' +
+          '<div style="font-size:12px;color:#888">' + (sc.done || 0) + '/' + (sc.total || 0) + ' done · Score ' + (sc.scorePct || 0) + '%</div>' +
+          '</div>';
+      });
+      html += '</div>';
+
+      html += '<div style="margin-bottom:16px"><button class="btn btn-sm btn-outline" onclick="_showStoreAnalytics()">View Analytics</button></div>';
+
+      html += '<div class="card" style="border-radius:12px;overflow:hidden"><div class="card-hd" style="background:#f8fafc;padding:14px 16px;font-weight:700">Today\'s Store Tasks</div><div class="card-bd" style="padding:0">';
+      html += _renderStoreTasks(tasks);
+      html += '</div></div>';
+
+      cont.innerHTML = html;
+    }, function (e) {
+      cont.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444">Error: ' + (e.message || 'Failed to load') + '</div>';
+    });
+  }, function (e) {
+    cont.innerHTML = '<div style="padding:40px;text-align:center;color:#ef4444">Scores error: ' + (e.message || 'Failed') + '</div>';
+  });
+}
+
+function _renderStoreTasks(tasks) {
+  if (!tasks.length) return '<div style="padding:40px;text-align:center;color:#999">No tasks for today</div>';
+  var h = '';
+  tasks.forEach(function (t, idx) {
+    var done = String(t['Status']) === 'Done';
+    h += '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9;' + (idx % 2 ? 'background:#fafafa' : '') + '">' +
+      '<div style="flex:1">' +
+      '<div style="font-weight:600;font-size:15px">' + _esc(t['Task']) + '</div>' +
+      '<div style="font-size:12px;color:#64748b;margin-top:2px">' + _esc(t['Store']) + ' · Deadline ' + _esc(t['Deadline'] || '-') + '</div>' +
+      (done ? '<div style="font-size:12px;color:#10b981;margin-top:4px">✓ ' + _esc(t['Completed By Name'] || '') + ' · ' + _esc(t['On Time'] || 'Done') + '</div>' : '') +
+      '</div>' +
+      (done
+        ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm btn-outline">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600">Done</span>')
+        : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Mark Done</button>') +
+      '</div>';
+  });
+  return h;
+}
+
+function _openMarkModal(rowId, photoReq) {
+  var modal = document.createElement('div');
+  modal.id = 'markModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:400px">' +
+    '<h3 style="margin:0 0 16px;font-size:18px">Mark Task Done</h3>' +
+    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px"></textarea>' +
+    (photoReq === 'Yes' ? '<input type="file" id="markPhoto" accept="image/*" capture="environment" style="margin-bottom:16px">' : '') +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+    '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',\'' + photoReq + '\')">Submit</button>' +
+    '</div></div>';
+  document.body.appendChild(modal);
+}
+
+function _submitMark(rowId, photoReq) {
+  var remark = (document.getElementById('markRemark') || {}).value || '';
+  var photoBase64 = '';
+  var fileInput = document.getElementById('markPhoto');
+
+  function doSubmit(b64) {
+    document.getElementById('markModal')?.remove();
+    _lbShow('Saving...');
+    _gas('markStoreTaskDone', [rowId, b64, remark], function (r) {
+      _lbHide();
+      if (r && r.success) {
+        _toast('Marked done', 'ok');
+        _vStoreCheck();
+      } else {
+        _toast((r && r.error) || 'Failed', 'err');
+      }
+    }, function (e) {
+      _lbHide();
+      _toast(e.message || 'Error', 'err');
+    });
+  }
+
+  if (photoReq === 'Yes' && fileInput && fileInput.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function () { doSubmit(reader.result.split(',')[1]); };
+    reader.readAsDataURL(fileInput.files[0]);
+  } else {
+    doSubmit('');
+  }
 }
 
 
