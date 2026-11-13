@@ -1935,6 +1935,7 @@ function _loadV(view, subTab) {
     muster: _vMuster,
     payroll: _vPayroll,
     storecheck: _vStoreCheck,
+    storeana: _vStoreAnalytics,
   };
 
   // IMPORTANT: ensure content is always visible
@@ -16023,5 +16024,47 @@ function _submitMark(rowId, photoReq) {
 }
 
 
+function _vStoreAnalytics() {
+  if (!_isOwner() && !_U.role !== 'MANAGER') {
+    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
+    return;
+  }
+  var cont = document.getElementById('content');
+  var today = _today();
+  var from = _daysLater(-7);
+  cont.innerHTML = '<div style="padding:20px">Loading analytics...</div>';
 
+  var html = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<input type="date" id="saFrom" value="' + from + '">' +
+    '<input type="date" id="saTo" value="' + today + '">' +
+    '<select id="saStore"><option value="All">All Stores</option><option>Bandra</option><option>Atria</option><option>KG</option></select>' +
+    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button>' +
+    '</div><div id="saResult"></div>';
+  cont.innerHTML = html;
+  _loadStoreAnalytics();
+}
+
+function _loadStoreAnalytics() {
+  var from = document.getElementById('saFrom').value;
+  var to = document.getElementById('saTo').value;
+  var store = document.getElementById('saStore').value;
+  var box = document.getElementById('saResult');
+  box.innerHTML = 'Loading...';
+
+  _gas('getStoreScores', [from, to], function (res) {
+    var scores = (res && res.scores) || {};
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">';
+    Object.keys(scores).forEach(function (s) {
+      if (store !== 'All' && s !== store) return;
+      var sc = scores[s];
+      html += '<div class="card" style="padding:16px"><div style="font-weight:700">' + s + '</div>' +
+        '<div style="font-size:24px;margin:8px 0">' + sc.pct + '%</div>' +
+        '<div style="font-size:13px;color:#666">' + sc.done + '/' + sc.total + ' completed<br>Score: ' + sc.scorePct + '%</div></div>';
+    });
+    html += '</div>';
+    box.innerHTML = html || '<div class="empty-state">No data</div>';
+  }, function (e) {
+    box.innerHTML = '<div style="color:red">Error: ' + (e.message || '') + '</div>';
+  });
+}
 
