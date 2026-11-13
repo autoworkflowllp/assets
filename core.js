@@ -15943,6 +15943,9 @@ function _renderStoreTasks(tasks) {
     var extra = '';
     if (done) {
       extra += '<div style="font-size:13px;color:#10b981;margin-top:4px">Done by : ✓ ' + _esc(t['Completed By Name'] || '') + '</div>';
+      if (t['Remark']) {
+        extra += '<div style="font-size:12px;color:#64748b;margin-top:3px;font-style:italic">Remark: ' + _esc(t['Remark']) + '</div>';
+      }
       if (actualRaw && t.Deadline && t.Deadline !== 'As needed') {
         var pp = String(t.Deadline).split(':');
         var aa = actualRaw.split(':');
