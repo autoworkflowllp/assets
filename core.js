@@ -15920,46 +15920,6 @@ function _vStoreCheckDate(d) {
 
 var _scCache = { scores: null, tasks: null, ts: 0 };
 
-function _vStoreCheck(force) {
-  var cont = document.getElementById('content');
-  if (!cont) return;
-  var today = _today();
-  var now = Date.now();
-
-  // Instant render from cache if available (< 30 sec old)
-  if (!force && _scCache.tasks && (now - _scCache.ts < 30000)) {
-    _renderStoreUI(_scCache.scores, _scCache.tasks);
-    return;
-  }
-
-  cont.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b">Loading...</div>';
-
-  _gas('getStoreScores', [today, today], function (scoreRes) {
-    var scores = (scoreRes && scoreRes.scores) || {};
-    _gas('getStoreChecklist', [today, 'All'], function (res) {
-      var tasks = (res && res.tasks) || [];
-      _scCache = { scores: scores, tasks: tasks, ts: Date.now() };
-      _renderStoreUI(scores, tasks);
-    });
-  });
-}
-
-function _renderStoreUI(scores, tasks) {
-  var cont = document.getElementById('content');
-  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px">';
-  ['Bandra', 'Atria', 'KG'].forEach(function (s) {
-    var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
-    var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 40 ? '#f59e0b' : '#ef4444';
-    html += '<div style="background:#fff;border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.06);border-top:3px solid ' + clr + '">' +
-      '<div style="font-size:12px;font-weight:600;color:#64748b">' + s + '</div>' +
-      '<div style="font-size:28px;font-weight:800;margin:4px 0">' + (sc.pct || 0) + '%</div>' +
-      '<div style="font-size:11px;color:#94a3b8">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · ' + (sc.scorePct || 0) + '% score</div></div>';
-  });
-  html += '</div><div style="background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)">' +
-    '<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9;font-weight:700">Today\'s Tasks</div>' +
-    '<div id="scList">' + _renderStoreTasks(tasks) + '</div></div>';
-  cont.innerHTML = html;
-}
 
 function _renderStoreTasks(tasks) {
   if (!tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
@@ -15975,67 +15935,6 @@ function _renderStoreTasks(tasks) {
             : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
       '</div>';
   }).join('');
-}
-
-function _openMarkModal(rowId, photoReq) {
-  var old = document.getElementById('markModal');
-  if (old) old.remove();
-
-  var needPhoto = (photoReq === 'Yes' || photoReq === 'yes' || photoReq === true);
-  var m = document.createElement('div');
-  m.id = 'markModal';
-  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:999999;display:flex;align-items:center;justify-content:center';
-  m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,.25)">' +
-    '<div style="font-size:17px;font-weight:700;margin-bottom:16px">Mark Done</div>' +
-    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:80px;padding:10px;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:14px;font-size:14px"></textarea>' +
-    (needPhoto ? '<div style="margin-bottom:16px"><div style="font-size:13px;color:#64748b;margin-bottom:6px">Upload Photo</div><input type="file" id="markPhoto" accept="image/*" capture="environment" style="width:100%;padding:8px;border:1px dashed #cbd5e1;border-radius:8px"></div>' : '') +
-    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
-      '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
-      '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
-    '</div></div>';
-  document.body.appendChild(m);
-}
-
-function _submitMark(rowId, needPhoto) {
-  var remark = (document.getElementById('markRemark') || {}).value || '';
-  var fileEl = document.getElementById('markPhoto');
-  var modal = document.getElementById('markModal');
-
-  function go(b64) {
-    if (modal) modal.remove();
-    _lbShow('Saving...');
-    _gas('markStoreTaskDone', [rowId, b64 || '', remark], function (r) {
-      _lbHide();
-      if (r && r.success) { _toast('Done', 'ok'); _scCache.ts = 0; _vStoreCheck(true); }
-      else _toast((r && r.error) || 'Failed', 'err');
-    }, function (e) { _lbHide(); _toast(e.message || 'Error', 'err'); });
-  }
-
-  if (needPhoto && fileEl && fileEl.files && fileEl.files[0]) {
-    var reader = new FileReader();
-    reader.onload = function () { go(reader.result.split(',')[1]); };
-    reader.readAsDataURL(fileEl.files[0]);
-  } else {
-    go('');
-  }
-}
-
-function _vStoreAnalytics() {
-  var role = String(_U.role || '').toUpperCase();
-  if (!['OWNER','MANAGER','ADMIN','EA'].includes(role)) {
-    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
-    return;
-  }
-  var cont = document.getElementById('content');
-  var today = _today();
-  var from = _daysLater(-6);
-  cont.innerHTML = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
-    '<input type="date" id="saFrom" value="' + from + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
-    '<input type="date" id="saTo" value="' + today + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
-    '<select id="saStore" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0"><option value="All">All Stores</option><option>Bandra</option><option>Atria</option><option>KG</option></select>' +
-    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button>' +
-    '</div><div id="saResult"></div>';
-  _loadStoreAnalytics();
 }
 
 function _loadStoreAnalytics() {
@@ -16065,5 +15964,126 @@ function _loadStoreAnalytics() {
   });
 }
 
+function _getUserStores() {
+  var s = String(_U.Store || _U.store || '').trim();
+  if (!s) return ['Bandra', 'Atria', 'KG'];
+  return s.split(',').map(function (x) { return x.trim(); }).filter(Boolean);
+}
 
+function _vStoreCheck(force) {
+  var cont = document.getElementById('content');
+  if (!cont) return;
+  var today = _today();
+  var userStores = _getUserStores();
 
+  if (!force && _scCache.tasks && (Date.now() - _scCache.ts < 20000)) {
+    _renderStoreUI(_scCache.scores, _scCache.tasks, userStores);
+    return;
+  }
+
+  // Soft loading - keep existing content if any
+  if (!cont.querySelector('#scList')) {
+    cont.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b">Loading...</div>';
+  }
+
+  _gas('getStoreScores', [today, today], function (scoreRes) {
+    var scores = (scoreRes && scoreRes.scores) || {};
+    _gas('getStoreChecklist', [today, 'All'], function (res) {
+      var tasks = (res && res.tasks) || [];
+      // Filter tasks by user stores
+      tasks = tasks.filter(function (t) {
+        return userStores.indexOf(String(t.Store)) > -1;
+      });
+      _scCache = { scores: scores, tasks: tasks, ts: Date.now() };
+      _renderStoreUI(scores, tasks, userStores);
+    });
+  });
+}
+
+function _renderStoreUI(scores, tasks, userStores) {
+  var cont = document.getElementById('content');
+  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px">';
+  userStores.forEach(function (s) {
+    var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
+    var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 40 ? '#f59e0b' : '#ef4444';
+    html += '<div style="background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);border-top:3px solid ' + clr + '">' +
+      '<div style="font-size:12px;font-weight:600;color:#64748b">' + s + '</div>' +
+      '<div style="font-size:26px;font-weight:800">' + (sc.pct || 0) + '%</div>' +
+      '<div style="font-size:11px;color:#94a3b8">' + (sc.done || 0) + '/' + (sc.total || 0) + '</div></div>';
+  });
+  html += '</div><div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05)">' +
+    '<div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-weight:700">Today\'s Tasks</div>' +
+    '<div id="scList">' + _renderStoreTasks(tasks) + '</div></div>';
+  cont.innerHTML = html;
+}
+
+function _openMarkModal(rowId, photoReq) {
+  var old = document.getElementById('markModal');
+  if (old) old.remove();
+  var needPhoto = String(photoReq).toLowerCase() === 'yes';
+  var m = document.createElement('div');
+  m.id = 'markModal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999999;display:flex;align-items:center;justify-content:center';
+  m.innerHTML = '<div style="background:#fff;border-radius:14px;padding:20px;width:90%;max-width:380px">' +
+    '<div style="font-weight:700;margin-bottom:12px">Mark Done</div>' +
+    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:70px;padding:8px;border:1px solid #e2e8f0;border-radius:8px;margin-bottom:12px"></textarea>' +
+    (needPhoto ? '<div style="margin-bottom:14px"><div style="font-size:12px;color:#64748b;margin-bottom:4px">Photo</div><input type="file" id="markPhoto" accept="image/*" capture="environment" style="width:100%"></div>' : '') +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+      '<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
+    '</div></div>';
+  document.body.appendChild(m);
+}
+
+function _submitMark(rowId, needPhoto) {
+  var remark = (document.getElementById('markRemark') || {}).value || '';
+  var fileEl = document.getElementById('markPhoto');
+  var modal = document.getElementById('markModal');
+
+  function go(b64) {
+    if (modal) modal.remove();
+    // Soft update - no full page loading
+    var btn = document.querySelector('button[onclick*="' + rowId + '"]');
+    if (btn) btn.outerHTML = '<span style="color:#10b981;font-size:12px">Saving...</span>';
+
+    _gas('markStoreTaskDone', [rowId, b64 || '', remark], function (r) {
+      if (r && r.success) {
+        _toast('Done', 'ok');
+        _scCache.ts = 0;
+        _vStoreCheck(true); // soft refresh
+      } else {
+        _toast((r && r.error) || 'Failed', 'err');
+        _vStoreCheck(true);
+      }
+    }, function (e) {
+      _toast(e.message || 'Error', 'err');
+      _vStoreCheck(true);
+    });
+  }
+
+  if (needPhoto && fileEl && fileEl.files && fileEl.files[0]) {
+    var reader = new FileReader();
+    reader.onload = function () { go(reader.result.split(',')[1]); };
+    reader.readAsDataURL(fileEl.files[0]);
+  } else go('');
+}
+
+function _vStoreAnalytics() {
+  var role = String(_U.role || '').toUpperCase();
+  if (!['OWNER','MANAGER','ADMIN','EA'].includes(role)) {
+    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
+    return;
+  }
+  var userStores = _getUserStores();
+  var cont = document.getElementById('content');
+  var today = _today();
+  var from = _daysLater(-6);
+  var opts = userStores.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  cont.innerHTML = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<input type="date" id="saFrom" value="' + from + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
+    '<input type="date" id="saTo" value="' + today + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
+    '<select id="saStore" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0"><option value="All">All My Stores</option>' + opts + '</select>' +
+    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button></div>' +
+    '<div id="saResult"></div>';
+  _loadStoreAnalytics();
+}
