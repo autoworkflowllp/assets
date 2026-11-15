@@ -10470,13 +10470,13 @@ function _vAttAnaBuild() {
     '<option value="pct_desc">Presence % ↓</option><option value="pct_asc">Presence % ↑</option>' +
     '<option value="absent_desc">Absent ↓</option><option value="late_desc">Late ↓</option>' +
     '<option value="name_asc">Name A-Z</option></select>' +
-'<div style="flex:1;min-width:8px"></div>' +
-'<button class="btn btn-sm btn-outline" onclick="_exportAttCSV()" style="white-space:nowrap"><i class="fas fa-file-export"></i> Export</button>' +
-'<button class="btn btn-sm btn-outline" onclick="_exportAttFullDetail()" style="white-space:nowrap"><i class="fas fa-list"></i> Full Detail</button>' +
-'<button class="btn btn-sm" onclick="_loadAtt()" style="white-space:nowrap"><i class="fas fa-chart-bar"></i> Analyze</button>' +
-'</div>' +
+    '<div style="flex:1;min-width:8px"></div>' +
+    '<button class="btn btn-sm btn-outline" onclick="_exportAttCSV()" style="white-space:nowrap"><i class="fas fa-file-export"></i> Export</button>' +
+    '<button class="btn btn-sm btn-outline" onclick="_exportAttFullDetail()" style="white-space:nowrap"><i class="fas fa-list"></i> Full Detail</button>' +
+    '<button class="btn btn-sm" onclick="_loadAtt()" style="white-space:nowrap"><i class="fas fa-chart-bar"></i> Analyze</button>' +
+    '</div>' +
 
-'<div id="attRoot">' + _skel(4) + '</div>';
+    '<div id="attRoot">' + _skel(4) + '</div>';
 
   _loadAtt();
 }
@@ -13943,18 +13943,18 @@ function _prOpenDetail(empId) {
     kpi('Unpaid', emp.unpaid_days || emp.lwp_days || 0, (emp.unpaid_days || 0) > 0 ? 'var(--R)' : 'var(--tx3)', 'fa-minus-circle') +
     '</div>' +
     '<div style="font-size:11px;color:var(--tx2);margin:0 0 14px;padding:8px 12px;background:var(--sur2);border-radius:8px;border:1px solid var(--bdr);line-height:1.5">' +
-      '<strong style="color:var(--tx)">PTO Eligible:</strong> ' +
-      ((emp.pto_eligible || (emp.pto_annual || 0) > 0)
-        ? '<span style="color:#059669;font-weight:700">Yes (11/year)</span>'
-        : '<span style="color:var(--tx3)">No</span>') +
-      ' &nbsp;·&nbsp; <strong>Taken:</strong> ' + (emp.pto_taken || 0) +
-      ' &nbsp;·&nbsp; <strong>Remaining:</strong> ' + (emp.pto_remaining != null ? emp.pto_remaining : '—') +
+    '<strong style="color:var(--tx)">PTO Eligible:</strong> ' +
+    ((emp.pto_eligible || (emp.pto_annual || 0) > 0)
+      ? '<span style="color:#059669;font-weight:700">Yes (11/year)</span>'
+      : '<span style="color:var(--tx3)">No</span>') +
+    ' &nbsp;·&nbsp; <strong>Taken:</strong> ' + (emp.pto_taken || 0) +
+    ' &nbsp;·&nbsp; <strong>Remaining:</strong> ' + (emp.pto_remaining != null ? emp.pto_remaining : '—') +
     '</div>';
 
   var calHtml = '<div style="margin-bottom:16px"><div style="font-size:12px;font-weight:800;margin-bottom:8px;color:var(--tx2)"><i class="fas fa-calendar-day"></i> Daily Log</div>' +
     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px">';
   log.forEach(function (d) {
-    
+
     var st = d.status || 'A';
     var bg = st === 'P' ? 'var(--Gl)' : st === 'HD' ? 'var(--Tl)' : st === 'A' ? 'var(--Rl)' :
       (st === 'Weekly Off' || st === 'WO') ? 'var(--sur2)' : st === 'PTO' ? 'var(--Pl)' : 'var(--sur2)';
@@ -13972,7 +13972,7 @@ function _prOpenDetail(empId) {
       return '<th style="padding:7px 8px;text-align:left;font-weight:800;color:var(--tx3)">' + h + '</th>';
     }).join('') + '</tr></thead><tbody>';
   log.forEach(function (d) {
-    
+
     var dow = '';
     try {
       var p = (d.date || '').split('-');
@@ -14014,7 +14014,7 @@ function _prOpenDetail(empId) {
 
     '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;border:1px solid var(--bdr);border-radius:10px;overflow:hidden">' +
     '<thead><tr style="background:var(--sur2)"><th colspan="2" style="padding:8px 12px;text-align:left;font-size:11px;color:var(--tx3)">EARNINGS</th></tr></thead><tbody>' +
-row('Monthly Salary (' + (emp.days_in_month || _prData.days_in_month || 30) + '-day month)', emp.gross_salary || emp.basic_salary) +
+    row('Monthly Salary (' + (emp.days_in_month || _prData.days_in_month || 30) + '-day month)', emp.gross_salary || emp.basic_salary) +
     row('Daily Rate', emp.daily_rate || emp.per_day_salary) +
     row('Extra Pay (unused Weekly Off × daily)', emp.extra_pay || 0, 'var(--G)') +
     row('OT Pay (' + (emp.ot_hours || 0) + 'h × ₹' + _prFmt(emp.hourly_rate || 0) + ')', emp.ot_pay || 0, '#4F46E5') +
@@ -15965,9 +15965,9 @@ function _renderStoreTasks(tasks) {
 
     return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
       '<div style="flex:1">' +
-        '<div style="font-weight:600;font-size:15px">' + _esc(t.Task) + '</div>' +
-        '<div style="font-size:13px;color:#475569;margin-top:4px">Store : ' + _esc(t.Store) + ' · Planned ' + planned + '</div>' +
-        extra +
+      '<div style="font-weight:600;font-size:15px">' + _esc(t.Task) + '</div>' +
+      '<div style="font-size:13px;color:#475569;margin-top:4px">Store : ' + _esc(t.Store) + ' · Planned ' + planned + '</div>' +
+      extra +
       '</div>' +
       (done
         ? (t['Photo URL'] ? '<a href="' + t['Photo URL'] + '" target="_blank" class="btn btn-sm btn-outline" style="border-radius:8px">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600">Done</span>')
@@ -16074,76 +16074,30 @@ function _vStoreCheck(force) {
 
 function _renderStoreUI(scores, tasks, userStores) {
   var cont = document.getElementById('content');
-  var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px">';
+  var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">';
   userStores.forEach(function (s) {
     var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
     var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 40 ? '#f59e0b' : '#ef4444';
-    html += '<div style="background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05);border-top:3px solid ' + clr + '">' +
-      '<div style="font-size:12px;font-weight:600;color:#64748b">' + s + '</div>' +
-      '<div style="font-size:26px;font-weight:800">' + (sc.pct || 0) + '%</div>' +
-      '<div style="font-size:11px;color:#94a3b8">' + (sc.done || 0) + '/' + (sc.total || 0) + '</div></div>';
+    html += '<div style="background:#fff;border-radius:12px;min-height:180px;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid #e2e8f0;padding:20px;display:flex;flex-direction:column">' +
+      '<div style="font-size:14px;font-weight:700;color:#475569">' + s + '</div>' +
+      '<div style="font-size:42px;font-weight:800;margin:12px 0;color:#0f172a">' + (sc.pct || 0) + '%</div>' +
+      '<div style="margin-top:auto;font-size:13px;color:#64748b">' + (sc.done || 0) + '/' + (sc.total || 0) + ' completed</div>' +
+      '<div style="font-size:12px;color:#94a3b8;margin-top:4px">Score ' + (sc.scorePct || 0) + '%</div>' +
+      '</div>';
   });
-  html += '</div><div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.05)">' +
-    '<div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;font-weight:700">Today\'s Tasks</div>' +
+  html += '</div>';
+
+  html += '<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid #e2e8f0">' +
+    '<div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;font-weight:700;font-size:16px">Today\'s Tasks</div>' +
     '<div id="scList">' + _renderStoreTasks(tasks) + '</div></div>';
+
   cont.innerHTML = html;
 }
 
-function _openMarkModal(rowId, photoReq) {
-  var old = document.getElementById('markModal');
-  if (old) old.remove();
-  var needPhoto = String(photoReq).toLowerCase() === 'yes';
-  var m = document.createElement('div');
-  m.id = 'markModal';
-  m.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:999999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
-  m.innerHTML = '<div style="background:#fff;border-radius:20px;padding:28px;width:92%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.25)">' +
-    '<div style="font-size:20px;font-weight:800;margin-bottom:6px;color:#0f172a">Mark Task Done</div>' +
-    '<div style="font-size:13px;color:#64748b;margin-bottom:20px">Add details and proof</div>' +
-    '<textarea id="markRemark" placeholder="Write a remark (optional)" style="width:100%;height:90px;padding:14px;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:16px;font-size:14px;resize:none;outline:none"></textarea>' +
-    (needPhoto ? '<div style="margin-bottom:20px"><div style="font-size:13px;font-weight:600;color:#475569;margin-bottom:8px">Upload Photo</div><input type="file" id="markPhoto" accept="image/*" capture="environment" style="width:100%;padding:12px;border:2px dashed #cbd5e1;border-radius:12px;background:#f8fafc"></div>' : '') +
-    '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-      '<button class="btn btn-outline" style="border-radius:10px" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
-      '<button class="btn btn-primary" style="border-radius:10px;padding:10px 20px" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
-    '</div></div>';
-  document.body.appendChild(m);
-}
-
-function _submitMark(rowId, needPhoto) {
-  var remark = (document.getElementById('markRemark') || {}).value || '';
-  var fileEl = document.getElementById('markPhoto');
-  var modal = document.getElementById('markModal');
-
-  function go(b64) {
-    if (modal) modal.remove();
-    // Soft update - no full page loading
-    var btn = document.querySelector('button[onclick*="' + rowId + '"]');
-    if (btn) btn.outerHTML = '<span style="color:#10b981;font-size:12px">Saving...</span>';
-
-    _gas('markStoreTaskDone', [rowId, b64 || '', remark], function (r) {
-      if (r && r.success) {
-        _toast('Done', 'ok');
-        _scCache.ts = 0;
-        _vStoreCheck(true); // soft refresh
-      } else {
-        _toast((r && r.error) || 'Failed', 'err');
-        _vStoreCheck(true);
-      }
-    }, function (e) {
-      _toast(e.message || 'Error', 'err');
-      _vStoreCheck(true);
-    });
-  }
-
-  if (needPhoto && fileEl && fileEl.files && fileEl.files[0]) {
-    var reader = new FileReader();
-    reader.onload = function () { go(reader.result.split(',')[1]); };
-    reader.readAsDataURL(fileEl.files[0]);
-  } else go('');
-}
 
 function _vStoreAnalytics() {
   var role = String(_U.role || '').toUpperCase();
-  if (!['OWNER','MANAGER','ADMIN','EA'].includes(role)) {
+  if (!['OWNER', 'MANAGER', 'ADMIN', 'EA'].includes(role)) {
     document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
     return;
   }
@@ -16159,4 +16113,93 @@ function _vStoreAnalytics() {
     '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button></div>' +
     '<div id="saResult"></div>';
   _loadStoreAnalytics();
+}
+
+function _openMarkModal(rowId, photoReq) {
+  var old = document.getElementById('markModal');
+  if (old) old.remove();
+  var needPhoto = String(photoReq).toLowerCase() === 'yes';
+  var m = document.createElement('div');
+  m.id = 'markModal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:999999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
+  m.innerHTML = '<div style="background:#fff;border-radius:20px;padding:24px;width:92%;max-width:420px;box-shadow:0 25px 50px rgba(0,0,0,.3)">' +
+    '<div style="font-size:18px;font-weight:800;margin-bottom:16px">Mark Done</div>' +
+    '<textarea id="markRemark" placeholder="Remark (optional)" style="width:100%;height:80px;padding:12px;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:16px;font-size:14px;resize:none"></textarea>' +
+    (needPhoto ? '<div style="margin-bottom:16px">' +
+      '<div style="font-size:13px;font-weight:600;color:#475569;margin-bottom:8px">Take Photo</div>' +
+      '<video id="camPreview" autoplay playsinline style="width:100%;border-radius:12px;background:#000;max-height:200px;display:none"></video>' +
+      '<canvas id="camCanvas" style="display:none"></canvas>' +
+      '<div style="display:flex;gap:8px;margin-top:8px">' +
+        '<button type="button" class="btn btn-sm btn-outline" id="startCam">Open Camera</button>' +
+        '<button type="button" class="btn btn-sm btn-primary" id="captureBtn" style="display:none">Capture</button>' +
+      '</div>' +
+      '<img id="previewImg" style="width:100%;border-radius:12px;margin-top:8px;display:none">' +
+      '</div>' : '') +
+    '<div style="display:flex;gap:10px;justify-content:flex-end">' +
+      '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
+      '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
+    '</div></div>';
+  document.body.appendChild(m);
+
+  if (needPhoto) {
+    var stream = null;
+    document.getElementById('startCam').onclick = function () {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
+        stream = s;
+        var v = document.getElementById('camPreview');
+        v.srcObject = s;
+        v.style.display = 'block';
+        document.getElementById('captureBtn').style.display = 'inline-block';
+      }).catch(function () { alert('Camera permission denied'); });
+    };
+    document.getElementById('captureBtn').onclick = function () {
+      var v = document.getElementById('camPreview');
+      var c = document.getElementById('camCanvas');
+      c.width = v.videoWidth;
+      c.height = v.videoHeight;
+      var ctx = c.getContext('2d');
+      ctx.drawImage(v, 0, 0);
+      // Timestamp
+      ctx.fillStyle = 'rgba(0,0,0,.6)';
+      ctx.fillRect(10, c.height - 40, 220, 30);
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px sans-serif';
+      var now = new Date();
+      ctx.fillText(now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }), 16, c.height - 18);
+      var img = document.getElementById('previewImg');
+      img.src = c.toDataURL('image/jpeg', 0.8);
+      img.style.display = 'block';
+      v.style.display = 'none';
+      if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
+    };
+  }
+}
+
+function _submitMark(rowId, needPhoto) {
+  var remark = (document.getElementById('markRemark') || {}).value || '';
+  var preview = document.getElementById('previewImg');
+  var modal = document.getElementById('markModal');
+  var b64 = '';
+
+  if (needPhoto && preview && preview.src && preview.src.indexOf('data:') === 0) {
+    b64 = preview.src.split(',')[1];
+  }
+
+  if (modal) modal.remove();
+  var btn = document.querySelector('button[onclick*="' + rowId + '"]');
+  if (btn) btn.outerHTML = '<span style="color:#10b981;font-size:12px">Saving...</span>';
+
+  _gas('markStoreTaskDone', [rowId, b64, remark], function (r) {
+    if (r && r.success) {
+      _toast('Done', 'ok');
+      _scCache.ts = 0;
+      _vStoreCheck(true);
+    } else {
+      _toast((r && r.error) || 'Failed', 'err');
+      _vStoreCheck(true);
+    }
+  }, function (e) {
+    _toast(e.message || 'Error', 'err');
+    _vStoreCheck(true);
+  });
 }
