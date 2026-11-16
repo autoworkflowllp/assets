@@ -16072,8 +16072,6 @@ function _vStoreCheck(force) {
   });
 }
 
-
-
 function _vStoreAnalytics() {
   var role = String(_U.role || '').toUpperCase();
   if (!['OWNER', 'MANAGER', 'ADMIN', 'EA'].includes(role)) {
@@ -16092,42 +16090,6 @@ function _vStoreAnalytics() {
     '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button></div>' +
     '<div id="saResult"></div>';
   _loadStoreAnalytics();
-}
-
-
-
-
-
-function _renderStoreUI(scores, tasks, userStores) {
-  var cont = document.getElementById('content');
-  var active = window._scActiveStore || userStores[0] || 'Bandra';
-
-  var html = '<div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px">';
-  userStores.forEach(function (s) {
-    var isAct = s === active;
-    html += '<button onclick="_scSwitch(\'' + s + '\')" style="padding:8px 16px;border-radius:20px;border:none;font-weight:600;font-size:14px;white-space:nowrap;cursor:pointer;' +
-      (isAct ? 'background:#0f172a;color:#fff' : 'background:#f1f5f9;color:#475569') + '">' + s + '</button>';
-  });
-  html += '</div>';
-
-  var sc = scores[active] || { pct: 0, scorePct: 0, done: 0, total: 0 };
-  var storeTasks = tasks.filter(function (t) { return String(t.Store) === active; });
-
-  html += '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid #e2e8f0">' +
-    '<div style="padding:20px;border-bottom:1px solid #f1f5f9">' +
-      '<div style="font-size:14px;font-weight:700;color:#475569">' + active + '</div>' +
-      '<div style="font-size:40px;font-weight:800;margin:8px 0;color:#0f172a">' + (sc.pct || 0) + '%</div>' +
-      '<div style="font-size:13px;color:#64748b">' + (sc.done || 0) + '/' + (sc.total || 0) + ' completed · Score ' + (sc.scorePct || 0) + '%</div>' +
-    '</div>' +
-    '<div style="max-height:70vh;overflow-y:auto">' + _renderStoreTasks(storeTasks) + '</div>' +
-  '</div>';
-
-  cont.innerHTML = html;
-}
-
-function _scSwitch(store) {
-  window._scActiveStore = store;
-  _vStoreCheck();
 }
 
 function _openMarkModal(rowId, photoReq) {
@@ -16225,59 +16187,54 @@ function _submitMark(rowId, needPhoto) {
   });
 }
 
+function _renderStoreUI(scores, tasks, userStores) {
+  var cont = document.getElementById('content');
+  if (!cont) return;
+  var active = window._scActiveStore || userStores[0] || 'Bandra';
+
+  var html = '<div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto">';
+  userStores.forEach(function (s) {
+    var on = s === active;
+    html += '<button onclick="_scSwitch(\'' + s + '\')" style="padding:8px 16px;border-radius:20px;border:none;font-weight:600;' +
+      (on ? 'background:#0f172a;color:#fff' : 'background:#f1f5f9;color:#475569') + '">' + s + '</button>';
+  });
+  html += '</div>';
+
+  var sc = scores[active] || { pct: 0, done: 0, total: 0, scorePct: 0 };
+  var storeTasks = tasks.filter(function (t) { return String(t.Store) === active; });
+
+  html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)">' +
+    '<div style="padding:20px;border-bottom:1px solid #eee">' +
+      '<div style="font-weight:700">' + active + '</div>' +
+      '<div style="font-size:36px;font-weight:800">' + (sc.pct || 0) + '%</div>' +
+      '<div style="font-size:13px;color:#666">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · Score ' + (sc.scorePct || 0) + '%</div>' +
+    '</div>' +
+    '<div>' + _renderStoreTasks(storeTasks) + '</div>' +
+  '</div>';
+
+  cont.innerHTML = html;
+}
+
+function _scSwitch(store) {
+  window._scActiveStore = store;
+  _vStoreCheck(true);
+}
+
 function _renderStoreTasks(tasks) {
-  if (!tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
-
-  function fmtTime(hm) {
-    if (!hm || hm === 'As needed') return hm || '-';
-    var p = String(hm).split(':');
-    var h = parseInt(p[0], 10);
-    var m = p[1] || '00';
-    if (isNaN(h)) return hm;
-    var ap = h >= 12 ? 'PM' : 'AM';
-    h = h % 12 || 12;
-    return h + ':' + m + ' ' + ap;
-  }
-
+  if (!tasks || !tasks.length) return '<div style="padding:32px;text-align:center;color:#999">No tasks</div>';
   return tasks.map(function (t) {
     var done = String(t.Status) === 'Done';
-    var planned = fmtTime(t.Deadline);
-    var actualRaw = done && t['Completed At'] ? String(t['Completed At']).slice(11, 16) : '';
-    var actual = actualRaw ? fmtTime(actualRaw) : '';
-    var photoLink = t['Photo_URL'] || t['Photo URL'] || '';
-
-    var extra = '';
-    if (done) {
-      extra += '<div style="font-size:13px;color:#10b981;margin-top:4px">Done by : ✓ ' + _esc(t['Completed By Name'] || '') + '</div>';
-      if (t['Remark']) {
-        extra += '<div style="font-size:12px;color:#64748b;margin-top:3px;font-style:italic">Remark: ' + _esc(t['Remark']) + '</div>';
-      }
-      if (actualRaw && t.Deadline && t.Deadline !== 'As needed') {
-        var pp = String(t.Deadline).split(':');
-        var aa = actualRaw.split(':');
-        var pMin = (parseInt(pp[0]) || 0) * 60 + (parseInt(pp[1]) || 0);
-        var aMin = (parseInt(aa[0]) || 0) * 60 + (parseInt(aa[1]) || 0);
-        var diff = aMin - pMin;
-        if (diff > 0) {
-          var dh = Math.floor(diff / 60), dm = diff % 60;
-          extra += '<div style="font-size:12px;color:#ef4444;margin-top:2px">Delay: ' + (dh < 10 ? '0' : '') + dh + ':' + (dm < 10 ? '0' : '') + dm + ':00 (Actual ' + actual + ')</div>';
-        } else {
-          extra += '<div style="font-size:12px;color:#10b981;margin-top:2px">On time · Actual ' + actual + '</div>';
-        }
-      } else if (actual) {
-        extra += '<div style="font-size:12px;color:#64748b;margin-top:2px">Done at ' + actual + '</div>';
-      }
-    }
-
-    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
+    var photo = t['Photo_URL'] || t['Photo URL'] || '';
+    return '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
       '<div style="flex:1">' +
-        '<div style="font-weight:600;font-size:15px">' + _esc(t.Task) + '</div>' +
-        '<div style="font-size:13px;color:#475569;margin-top:4px">Store : ' + _esc(t.Store) + ' · Planned ' + planned + '</div>' +
-        extra +
+        '<div style="font-weight:600">' + _esc(t.Task || '') + '</div>' +
+        '<div style="font-size:12px;color:#666">' + _esc(t.Store || '') + ' · ' + _esc(t.Deadline || '') + '</div>' +
+        (done ? '<div style="font-size:12px;color:#10b981">✓ ' + _esc(t['Completed By Name'] || '') + '</div>' : '') +
       '</div>' +
       (done
-        ? (photoLink ? '<a href="' + photoLink + '" target="_blank" class="btn btn-sm btn-outline" style="border-radius:8px">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600">Done</span>')
-        : '<button class="btn btn-sm btn-primary" style="border-radius:8px" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
+        ? (photo ? '<a href="' + photo + '" target="_blank" class="btn btn-sm btn-outline">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:12px;font-size:12px">Done</span>')
+        : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
       '</div>';
   }).join('');
 }
+
