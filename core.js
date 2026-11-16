@@ -11601,15 +11601,15 @@ function _mkPanes(tabs, active, contents) {
 }
 
 function _switchTab(tabId) {
-if (tabId && ['amy','areg','arega','amteam'].indexOf(tabId) > -1) {
+  if (tabId && ['amy', 'areg', 'arega', 'amteam'].indexOf(tabId) > -1) {
     localStorage.setItem('attTab', tabId);
   }
-  if (tabId && ['dmine','dout','dcr','dall'].indexOf(tabId) > -1) {
+  if (tabId && ['dmine', 'dout', 'dcr', 'dall'].indexOf(tabId) > -1) {
     localStorage.setItem('delegTab', tabId);
   }
-  if (tabId && ['ctoday','cweek','chist','csetup','cmteam'].indexOf(tabId) > -1) {
-  localStorage.setItem('checkTab', tabId);
-}
+  if (tabId && ['ctoday', 'cweek', 'chist', 'csetup', 'cmteam'].indexOf(tabId) > -1) {
+    localStorage.setItem('checkTab', tabId);
+  }
 
   _ST = tabId;
 
@@ -15977,7 +15977,7 @@ function _renderStoreTasks(tasks) {
         var am = (parseInt(actualRaw.split(':')[0]) || 0) * 60 + (parseInt(actualRaw.split(':')[1]) || 0);
         var diff = am - pm;
         if (diff > 0) {
-          lines += '<div style="font-size:12px;color:#ef4444;margin-top:2px">Delay: ' + Math.floor(diff/60) + 'h ' + (diff%60) + 'm</div>';
+          lines += '<div style="font-size:12px;color:#ef4444;margin-top:2px">Delay: ' + Math.floor(diff / 60) + 'h ' + (diff % 60) + 'm</div>';
         } else {
           lines += '<div style="font-size:12px;color:#10b981;margin-top:2px">On time</div>';
         }
@@ -15986,17 +15986,17 @@ function _renderStoreTasks(tasks) {
 
     return '<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
       '<div style="display:flex;gap:12px;align-items:flex-start">' +
-        '<div style="flex:1">' +
-          '<div style="font-weight:600;font-size:15px">' + _esc(t.Task || t.task || '') + '</div>' +
-          lines +
-        '</div>' +
-        '<div>' +
-          (done
-            ? (photo ? '<a href="' + photo + '" target="_blank" class="btn btn-sm btn-outline">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:12px;font-size:12px">Done</span>')
-            : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID'] || t.rowId) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
-        '</div>' +
+      '<div style="flex:1">' +
+      '<div style="font-weight:600;font-size:15px">' + _esc(t.Task || t.task || '') + '</div>' +
+      lines +
       '</div>' +
-    '</div>';
+      '<div>' +
+      (done
+        ? (photo ? '<a href="' + photo + '" target="_blank" class="btn btn-sm btn-outline">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:12px;font-size:12px">Done</span>')
+        : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID'] || t.rowId) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
+      '</div>' +
+      '</div>' +
+      '</div>';
   }).join('');
 }
 
@@ -16133,14 +16133,14 @@ function _openMarkModal(rowId, photoReq) {
       '<video id="camPreview" autoplay playsinline style="width:100%;border-radius:12px;background:#000;max-height:200px;display:none"></video>' +
       '<canvas id="camCanvas" style="display:none"></canvas>' +
       '<div style="display:flex;gap:8px;margin-top:8px">' +
-        '<button type="button" class="btn btn-sm btn-outline" id="startCam">Open Camera</button>' +
-        '<button type="button" class="btn btn-sm btn-primary" id="captureBtn" style="display:none">Capture</button>' +
+      '<button type="button" class="btn btn-sm btn-outline" id="startCam">Open Camera</button>' +
+      '<button type="button" class="btn btn-sm btn-primary" id="captureBtn" style="display:none">Capture</button>' +
       '</div>' +
       '<img id="previewImg" style="width:100%;border-radius:12px;margin-top:8px;display:none">' +
       '</div>' : '') +
     '<div style="display:flex;gap:10px;justify-content:flex-end">' +
-      '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
-      '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
+    '<button class="btn btn-outline" onclick="document.getElementById(\'markModal\').remove()">Cancel</button>' +
+    '<button class="btn btn-primary" onclick="_submitMark(\'' + rowId + '\',' + needPhoto + ')">Submit</button>' +
     '</div></div>';
   document.body.appendChild(m);
 
@@ -16150,7 +16150,7 @@ function _openMarkModal(rowId, photoReq) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(function (pos) {
         locText = 'Lat:' + pos.coords.latitude.toFixed(5) + ' Lon:' + pos.coords.longitude.toFixed(5);
-      }, function () {}, { timeout: 5000 });
+      }, function () { }, { timeout: 5000 });
     }
     document.getElementById('startCam').onclick = function () {
       navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
@@ -16212,8 +16212,8 @@ function _submitMark(rowId, needPhoto) {
     _vStoreCheck(true);
   });
 
-   _scCache.ts = 0;
-_vStoreCheck(true); // soft refresh
+  _scCache.ts = 0;
+  _vStoreCheck(true); // soft refresh
 }
 
 function _renderStoreUI(scores, tasks, userStores) {
@@ -16234,12 +16234,12 @@ function _renderStoreUI(scores, tasks, userStores) {
 
   html += '<div style="background:#fff;border-radius:16px;box-shadow:0 1px 3px rgba(0,0,0,.1)">' +
     '<div style="padding:20px;border-bottom:1px solid #eee">' +
-      '<div style="font-weight:700">' + active + '</div>' +
-      '<div style="font-size:36px;font-weight:800">' + (sc.pct || 0) + '%</div>' +
-      '<div style="font-size:13px;color:#666">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · Score ' + (sc.scorePct || 0) + '%</div>' +
+    '<div style="font-weight:700">' + active + '</div>' +
+    '<div style="font-size:36px;font-weight:800">' + (sc.pct || 0) + '%</div>' +
+    '<div style="font-size:13px;color:#666">' + (sc.done || 0) + '/' + (sc.total || 0) + ' · Score ' + (sc.scorePct || 0) + '%</div>' +
     '</div>' +
     '<div>' + _renderStoreTasks(storeTasks) + '</div>' +
-  '</div>';
+    '</div>';
 
   cont.innerHTML = html;
 }
@@ -16279,38 +16279,45 @@ function _exportDeleg() {
     var html = '<html><head><title>Delegation Report</title>' +
       '<style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px}' +
       'h2{margin:0 0 8px} .meta{color:#555;margin-bottom:16px;font-size:11px}' +
-      'table{width:100%;border-collapse:collapse} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}' +
-      'th{background:#f5f5f5;font-weight:700} .overdue{color:#c00} .done{color:#080}</style></head><body>' +
+      'table{width:100%;border-collapse:collapse} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;vertical-align:top}' +
+      'th{background:#f5f5f5;font-weight:700} .overdue{color:#c00;font-weight:600} .done{color:#080}</style></head><body>' +
       '<h2>Delegation Report</h2>' +
       '<div class="meta">Generated: ' + new Date().toLocaleString('en-IN') +
-      ' | Filter: Status=' + st + (from ? ' | From=' + from : '') + (to ? ' | To=' + to : '') +
+      ' | Status=' + st + (from ? ' | From=' + from : '') + (to ? ' | To=' + to : '') +
       (emp !== 'all' ? ' | Person=' + emp : '') + ' | Total: ' + dels.length + '</div>' +
       '<table><thead><tr>' +
-      '<th>Task</th><th>Assigned To</th><th>Assigned By</th><th>Assigned Date</th><th>Due Date</th><th>Status</th><th>Completed At</th><th>Notes</th>' +
+      '<th>Task</th><th>Assigned To</th><th>Assigned By</th><th>Assigned On</th><th>Due Date</th><th>Status</th><th>Completed / Shifted On</th><th>Notes / Reason</th>' +
       '</tr></thead><tbody>';
 
- dels.forEach(function (d) {
-  var statusClass = (d.status === 'Overdue') ? 'overdue' : (d.status === 'Completed' ? 'done' : '');
-  var toName = d.to_name || d.delegated_to_name || d.to || d.delegated_to || '';
-  var byName = d.from_name || d.delegated_by_name || d.from || d.delegated_by || '';
-  html += '<tr>' +
-    '<td>' + _esc(d.task || '') + '</td>' +
-    '<td>' + _esc(toName) + '</td>' +
-    '<td>' + _esc(byName) + '</td>' +
-    '<td>' + _esc(d.assigned_date || d.created_at || '') + '</td>' +
-    '<td>' + _esc(d.due_date || '') + '</td>' +
-    '<td class="' + statusClass + '">' + _esc(d.status || '') + '</td>' +
-    '<td>' + _esc(d.completed_at || '') + '</td>' +
-    '<td>' + _esc(d.notes || d.completion_notes || '') + '</td>' +
-    '</tr>';
-});
+    dels.forEach(function (d) {
+      var stLower = String(d.status || '').toLowerCase();
+      var statusClass = stLower.indexOf('overdue') > -1 ? 'overdue' : (stLower === 'completed' ? 'done' : '');
+      var toName = d.to_name || d.delegated_to_name || d.to || '';
+      var byName = d.from_name || d.delegated_by_name || d.from || '';
+      var assignedOn = d.assigned_date || d.created_at || d.delegation_date || '';
+      var completedOn = d.completed_at || d.shifted_at || d.updated_at || '';
+      var notes = d.notes || d.completion_notes || d.shift_reason || d.remark || '';
+
+      html += '<tr>' +
+        '<td>' + _esc(d.task || d.task_name || '') + '</td>' +
+        '<td>' + _esc(toName) + '</td>' +
+        '<td>' + _esc(byName) + '</td>' +
+        '<td>' + _esc(assignedOn) + '</td>' +
+        '<td>' + _esc(d.due_date || d.final_date || '') + '</td>' +
+        '<td class="' + statusClass + '">' + _esc(d.status || '') + '</td>' +
+        '<td>' + _esc(completedOn) + '</td>' +
+        '<td>' + _esc(notes) + '</td>' +
+        '</tr>';
+    });
 
     html += '</tbody></table></body></html>';
 
     var w = window.open('', '_blank');
-    w.document.write(html);
-    w.document.close();
-    setTimeout(function () { w.print(); }, 400);
+    if (w) {
+      w.document.write(html);
+      w.document.close();
+      setTimeout(function () { w.print(); }, 500);
+    }
   }, function (e) {
     _toast('Export failed: ' + (e.message || ''), 'err');
   });
