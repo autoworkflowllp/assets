@@ -16074,23 +16074,29 @@ function _vStoreCheck(force) {
 
 function _renderStoreUI(scores, tasks, userStores) {
   var cont = document.getElementById('content');
-  var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px">';
+  var html = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start">';
+
   userStores.forEach(function (s) {
     var sc = scores[s] || { pct: 0, scorePct: 0, done: 0, total: 0 };
     var clr = sc.pct >= 80 ? '#10b981' : sc.pct >= 40 ? '#f59e0b' : '#ef4444';
-    html += '<div style="background:#fff;border-radius:12px;min-height:180px;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid #e2e8f0;padding:20px;display:flex;flex-direction:column">' +
-      '<div style="font-size:14px;font-weight:700;color:#475569">' + s + '</div>' +
-      '<div style="font-size:42px;font-weight:800;margin:12px 0;color:#0f172a">' + (sc.pct || 0) + '%</div>' +
-      '<div style="margin-top:auto;font-size:13px;color:#64748b">' + (sc.done || 0) + '/' + (sc.total || 0) + ' completed</div>' +
-      '<div style="font-size:12px;color:#94a3b8;margin-top:4px">Score ' + (sc.scorePct || 0) + '%</div>' +
-      '</div>';
+    var storeTasks = tasks.filter(function (t) { return String(t.Store) === s; });
+
+    html += '<div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid #e2e8f0">' +
+      // Score header
+      '<div style="padding:20px;border-bottom:1px solid #f1f5f9;background:linear-gradient(to bottom,#fff,#fafafa)">' +
+        '<div style="font-size:14px;font-weight:700;color:#475569">' + s + '</div>' +
+        '<div style="font-size:40px;font-weight:800;margin:8px 0;color:#0f172a">' + (sc.pct || 0) + '%</div>' +
+        '<div style="font-size:13px;color:#64748b">' + (sc.done || 0) + '/' + (sc.total || 0) + ' completed</div>' +
+        '<div style="font-size:12px;color:#94a3b8">Score ' + (sc.scorePct || 0) + '%</div>' +
+      '</div>' +
+      // Tasks
+      '<div style="max-height:70vh;overflow-y:auto">' +
+        _renderStoreTasks(storeTasks) +
+      '</div>' +
+    '</div>';
   });
+
   html += '</div>';
-
-  html += '<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid #e2e8f0">' +
-    '<div style="padding:16px 20px;border-bottom:1px solid #f1f5f9;font-weight:700;font-size:16px">Today\'s Tasks</div>' +
-    '<div id="scList">' + _renderStoreTasks(tasks) + '</div></div>';
-
   cont.innerHTML = html;
 }
 
