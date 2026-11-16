@@ -5174,14 +5174,18 @@ function _vAttend() {
   if (_isManager()) {
     tabs.push({ id: 'arega', lbl: '<i class="fas fa-clipboard-check"></i> Reg. Approvals' });
     panes.push('<div id="aregaPane">' + _aregaForm() + '</div>');
-    // Muster tab removed — now available in Attendance Analytics → Muster Grid view
   }
   if (_isMarkAttendanceAllowed()) {
     tabs.push({ id: 'amteam', lbl: '<i class="fas fa-user-check"></i> Mark Team Attendance' });
     panes.push('<div id="amteamPane">' + _amTeamForm() + '</div>');
   }
 
-  var at = _ST || (needsAtt ? 'amy' : 'areg');
+  // Remember last tab
+  var at = localStorage.getItem('attTab') || _ST || (needsAtt ? 'amy' : 'areg');
+  // Validate tab exists
+  var validIds = tabs.map(function (t) { return t.id; });
+  if (validIds.indexOf(at) === -1) at = validIds[0] || 'amy';
+  _ST = at;
 
   document.getElementById('content').innerHTML =
     '<div class="mod-head">' +
@@ -5193,7 +5197,7 @@ function _vAttend() {
   else if (at === 'areg') _loadMyRegularizations();
   else if (at === 'arega' && _isManager()) _loadRegApprovals();
   else if (at === 'amteam' && _isMarkAttendanceAllowed()) _loadTeamAtt();
-  if (_ST) setTimeout(function () { _switchTab(_ST); }, 30);
+  setTimeout(function () { _switchTab(at); }, 30);
 }
 
 
@@ -11592,10 +11596,13 @@ function _mkPanes(tabs, active, contents) {
 }
 
 function _switchTab(tabId) {
- if (tabId && (tabId === 'dmine' || tabId === 'dout' || tabId === 'dcr' || tabId === 'dall')) {
-    localStorage.setItem('delegTab', tabId);
-    _ST = tabId;
+if (tabId && ['amy','areg','arega','amteam'].indexOf(tabId) > -1) {
+    localStorage.setItem('attTab', tabId);
   }
+  if (tabId && ['dmine','dout','dcr','dall'].indexOf(tabId) > -1) {
+    localStorage.setItem('delegTab', tabId);
+  }
+  _ST = tabId;
 
   // Tab buttons
   document.querySelectorAll('.tab').forEach(function (el) {
