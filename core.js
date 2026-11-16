@@ -16255,19 +16255,63 @@ function _scSwitch(store) {
 }
 
 function _exportDeleg() {
-  var list = document.getElementById('dallList');
-  if (!list) return;
-  var cards = list.querySelectorAll('.dcard');
-  var csv = 'Task,Assigned To,Due Date,Status\n';
-  cards.forEach(function (c) {
-    var title = (c.querySelector('.dc-title') || {}).innerText || '';
-    var meta = (c.querySelector('.dc-meta') || {}).innerText || '';
-    csv += '"' + title.replace(/"/g, '""') + '","' + meta.replace(/"/g, '""') + '"\n';
+  var st = (document.getElementById('dallSt') || {}).value || 'All';
+  var from = (document.getElementById('dallFrom') || {}).value || '';
+  var to = (document.getElementById('dallTo') || {}).value || '';
+  var emp = (document.getElementById('dallEmp') || {}).value || 'all';
+  var search = (document.getElementById('dallSearch') || {}).value || '';
+
+  var filters = { status: st };
+  if (from) filters.from_date = from;
+  if (to) filters.to_date = to;
+  if (emp && emp !== 'all') filters.delegated_to = emp;
+
+  _gas('getAllDelegations', [filters], function (dels) {
+    dels = dels || [];
+    if (search) {
+      var q = search.toLowerCase();
+      dels = dels.filter(function (d) {
+        return (d.task || '').toLowerCase().indexOf(q) > -1 ||
+               (d.to_name || '').toLowerCase().indexOf(q) > -1;
+      });
+    }
+
+    var html = '<html><head><title>Delegation Report</title>' +
+      '<style>body{font-family:Arial,sans-serif;font-size:12px;margin:20px}' +
+      'h2{margin:0 0 8px} .meta{color:#555;margin-bottom:16px;font-size:11px}' +
+      'table{width:100%;border-collapse:collapse} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left}' +
+      'th{background:#f5f5f5;font-weight:700} .overdue{color:#c00} .done{color:#080}</style></head><body>' +
+      '<h2>Delegation Report</h2>' +
+      '<div class="meta">Generated: ' + new Date().toLocaleString('en-IN') +
+      ' | Filter: Status=' + st + (from ? ' | From=' + from : '') + (to ? ' | To=' + to : '') +
+      (emp !== 'all' ? ' | Person=' + emp : '') + ' | Total: ' + dels.length + '</div>' +
+      '<table><thead><tr>' +
+      '<th>Task</th><th>Assigned To</th><th>Assigned By</th><th>Assigned Date</th><th>Due Date</th><th>Status</th><th>Completed At</th><th>Notes</th>' +
+      '</tr></thead><tbody>';
+
+    dels.forEach(function (d) {
+      var statusClass = (d.status === 'Overdue') ? 'overdue' : (d.status === 'Completed' ? 'done' : '');
+      html += '<tr>' +
+        '<td>' + _esc(d.task || '') + '</td>' +
+        '<td>' + _esc(d.to_name || d.delegated_to || '') + '</td>' +
+        '<td>' + _esc(d.from_name || d.delegated_by || '') + '</td>' +
+        '<td>' + _esc(d.assigned_date || d.created_at || '') + '</td>' +
+        '<td>' + _esc(d.due_date || '') + '</td>' +
+        '<td class="' + statusClass + '">' + _esc(d.status || '') + '</td>' +
+        '<td>' + _esc(d.completed_at || '') + '</td>' +
+        '<td>' + _esc(d.notes || d.completion_notes || '') + '</td>' +
+        '</tr>';
+    });
+
+    html += '</tbody></table></body></html>';
+
+    var w = window.open('', '_blank');
+    w.document.write(html);
+    w.document.close();
+    setTimeout(function () { w.print(); }, 400);
+  }, function (e) {
+    _toast('Export failed: ' + (e.message || ''), 'err');
   });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
-  a.download = 'Delegation_' + _today() + '.csv';
-  a.click();
 }
 
 
