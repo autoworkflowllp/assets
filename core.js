@@ -15920,65 +15920,67 @@ function _vStoreCheckDate(d) {
 
 var _scCache = { scores: null, tasks: null, ts: 0 };
 
-function _renderStoreTasks(tasks) {
-  if (!tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
 
-  function fmtTime(hm) {
+
+function _renderStoreTasks(tasks) {
+  if (!tasks || !tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
+
+  function fmt(hm) {
     if (!hm || hm === 'As needed') return hm || '-';
     var p = String(hm).split(':');
     var h = parseInt(p[0], 10);
-    var m = p[1] || '00';
     if (isNaN(h)) return hm;
     var ap = h >= 12 ? 'PM' : 'AM';
     h = h % 12 || 12;
-    return h + ':' + m + ' ' + ap;
+    return h + ':' + (p[1] || '00') + ' ' + ap;
   }
 
   return tasks.map(function (t) {
-    var done = String(t.Status) === 'Done';
-    var planned = fmtTime(t.Deadline);
-    var actualRaw = done && t['Completed At'] ? String(t['Completed At']).slice(11, 16) : '';
-    var actual = actualRaw ? fmtTime(actualRaw) : '';
-    var photoLink = t['Photo_URL'] || t['Photo URL'] || '';
+    var done = String(t.Status || t.status || '') === 'Done';
+    var planned = fmt(t.Deadline || t.deadline);
+    var completedAt = t['Completed At'] || t.completedAt || '';
+    var actualRaw = completedAt ? String(completedAt).slice(11, 16) : '';
+    var actual = actualRaw ? fmt(actualRaw) : '';
+    var photo = t['Photo_URL'] || t['Photo URL'] || t.photoUrl || '';
+    var remark = t['Remark'] || t.remark || '';
+    var byName = t['Completed By Name'] || t.completedByName || '';
 
-    var extra = '';
+    var lines = '';
+    lines += '<div style="font-size:13px;color:#475569;margin-top:4px">Store: ' + _esc(t.Store || t.store || '') + ' · Planned: ' + planned + '</div>';
+
     if (done) {
-      extra += '<div style="font-size:13px;color:#10b981;margin-top:6px">Done by : ✓ ' + _esc(t['Completed By Name'] || '') + '</div>';
-      if (t['Remark']) {
-        extra += '<div style="font-size:12px;color:#64748b;margin-top:3px;font-style:italic">Remark: ' + _esc(t['Remark']) + '</div>';
-      }
-      if (actual) {
-        extra += '<div style="font-size:12px;color:#475569;margin-top:3px">Actual time: ' + actual + '</div>';
-      }
+      lines += '<div style="font-size:13px;color:#10b981;margin-top:4px">Done by: ✓ ' + _esc(byName) + '</div>';
+      if (actual) lines += '<div style="font-size:12px;color:#334155;margin-top:3px">Actual: ' + actual + '</div>';
+      if (remark) lines += '<div style="font-size:12px;color:#64748b;margin-top:3px;font-style:italic">Remark: ' + _esc(remark) + '</div>';
       if (actualRaw && t.Deadline && t.Deadline !== 'As needed') {
-        var pp = String(t.Deadline).split(':');
-        var aa = actualRaw.split(':');
-        var pMin = (parseInt(pp[0]) || 0) * 60 + (parseInt(pp[1]) || 0);
-        var aMin = (parseInt(aa[0]) || 0) * 60 + (parseInt(aa[1]) || 0);
-        var diff = aMin - pMin;
+        var pm = (parseInt(String(t.Deadline).split(':')[0]) || 0) * 60 + (parseInt(String(t.Deadline).split(':')[1]) || 0);
+        var am = (parseInt(actualRaw.split(':')[0]) || 0) * 60 + (parseInt(actualRaw.split(':')[1]) || 0);
+        var diff = am - pm;
         if (diff > 0) {
-          var dh = Math.floor(diff / 60), dm = diff % 60;
-          extra += '<div style="font-size:12px;color:#ef4444;margin-top:2px">Delay: ' + (dh < 10 ? '0' : '') + dh + ':' + (dm < 10 ? '0' : '') + dm + '</div>';
+          lines += '<div style="font-size:12px;color:#ef4444;margin-top:2px">Delay: ' + Math.floor(diff/60) + 'h ' + (diff%60) + 'm</div>';
         } else {
-          extra += '<div style="font-size:12px;color:#10b981;margin-top:2px">On time</div>';
+          lines += '<div style="font-size:12px;color:#10b981;margin-top:2px">On time</div>';
         }
       }
     }
 
     return '<div style="padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
-      '<div style="display:flex;align-items:flex-start;gap:12px">' +
+      '<div style="display:flex;gap:12px;align-items:flex-start">' +
         '<div style="flex:1">' +
-          '<div style="font-weight:600;font-size:15px">' + _esc(t.Task) + '</div>' +
-          '<div style="font-size:13px;color:#475569;margin-top:4px">Store : ' + _esc(t.Store) + ' · Planned ' + planned + '</div>' +
-          extra +
+          '<div style="font-weight:600;font-size:15px">' + _esc(t.Task || t.task || '') + '</div>' +
+          lines +
         '</div>' +
-        (done
-          ? (photoLink ? '<a href="' + photoLink + '" target="_blank" class="btn btn-sm btn-outline" style="border-radius:8px;align-self:center">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;align-self:center">Done</span>')
-          : '<button class="btn btn-sm btn-primary" style="border-radius:8px;align-self:center" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
+        '<div>' +
+          (done
+            ? (photo ? '<a href="' + photo + '" target="_blank" class="btn btn-sm btn-outline">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:12px;font-size:12px">Done</span>')
+            : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID'] || t.rowId) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
+        '</div>' +
       '</div>' +
     '</div>';
   }).join('');
 }
+
+
 
 function _loadStoreAnalytics() {
   var from = document.getElementById('saFrom').value;
