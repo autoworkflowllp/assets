@@ -16289,19 +16289,21 @@ function _exportDeleg() {
       '<th>Task</th><th>Assigned To</th><th>Assigned By</th><th>Assigned Date</th><th>Due Date</th><th>Status</th><th>Completed At</th><th>Notes</th>' +
       '</tr></thead><tbody>';
 
-    dels.forEach(function (d) {
-      var statusClass = (d.status === 'Overdue') ? 'overdue' : (d.status === 'Completed' ? 'done' : '');
-      html += '<tr>' +
-        '<td>' + _esc(d.task || '') + '</td>' +
-        '<td>' + _esc(d.to_name || d.delegated_to || '') + '</td>' +
-        '<td>' + _esc(d.from_name || d.delegated_by || '') + '</td>' +
-        '<td>' + _esc(d.assigned_date || d.created_at || '') + '</td>' +
-        '<td>' + _esc(d.due_date || '') + '</td>' +
-        '<td class="' + statusClass + '">' + _esc(d.status || '') + '</td>' +
-        '<td>' + _esc(d.completed_at || '') + '</td>' +
-        '<td>' + _esc(d.notes || d.completion_notes || '') + '</td>' +
-        '</tr>';
-    });
+ dels.forEach(function (d) {
+  var statusClass = (d.status === 'Overdue') ? 'overdue' : (d.status === 'Completed' ? 'done' : '');
+  var toName = d.to_name || d.delegated_to_name || d.to || d.delegated_to || '';
+  var byName = d.from_name || d.delegated_by_name || d.from || d.delegated_by || '';
+  html += '<tr>' +
+    '<td>' + _esc(d.task || '') + '</td>' +
+    '<td>' + _esc(toName) + '</td>' +
+    '<td>' + _esc(byName) + '</td>' +
+    '<td>' + _esc(d.assigned_date || d.created_at || '') + '</td>' +
+    '<td>' + _esc(d.due_date || '') + '</td>' +
+    '<td class="' + statusClass + '">' + _esc(d.status || '') + '</td>' +
+    '<td>' + _esc(d.completed_at || '') + '</td>' +
+    '<td>' + _esc(d.notes || d.completion_notes || '') + '</td>' +
+    '</tr>';
+});
 
     html += '</tbody></table></body></html>';
 
