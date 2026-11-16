@@ -16149,6 +16149,12 @@ function _openMarkModal(rowId, photoReq) {
 
   if (needPhoto) {
     var stream = null;
+    var locText = 'Loc: unavailable';
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        locText = 'Lat:' + pos.coords.latitude.toFixed(5) + ' Lon:' + pos.coords.longitude.toFixed(5);
+      }, function () {}, { timeout: 5000 });
+    }
     document.getElementById('startCam').onclick = function () {
       navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then(function (s) {
         stream = s;
@@ -16161,19 +16167,20 @@ function _openMarkModal(rowId, photoReq) {
     document.getElementById('captureBtn').onclick = function () {
       var v = document.getElementById('camPreview');
       var c = document.getElementById('camCanvas');
-      c.width = v.videoWidth;
-      c.height = v.videoHeight;
+      c.width = v.videoWidth || 640;
+      c.height = v.videoHeight || 480;
       var ctx = c.getContext('2d');
-      ctx.drawImage(v, 0, 0);
-      // Timestamp
-      ctx.fillStyle = 'rgba(0,0,0,.6)';
-      ctx.fillRect(10, c.height - 40, 220, 30);
+      ctx.drawImage(v, 0, 0, c.width, c.height);
+      // Overlay
+      ctx.fillStyle = 'rgba(0,0,0,.65)';
+      ctx.fillRect(8, c.height - 70, c.width - 16, 60);
       ctx.fillStyle = '#fff';
-      ctx.font = '16px sans-serif';
-      var now = new Date();
-      ctx.fillText(now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }), 16, c.height - 18);
+      ctx.font = '14px sans-serif';
+      var now = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+      ctx.fillText(now, 16, c.height - 42);
+      ctx.fillText(locText, 16, c.height - 20);
       var img = document.getElementById('previewImg');
-      img.src = c.toDataURL('image/jpeg', 0.8);
+      img.src = c.toDataURL('image/jpeg', 0.85);
       img.style.display = 'block';
       v.style.display = 'none';
       if (stream) stream.getTracks().forEach(function (t) { t.stop(); });
