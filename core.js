@@ -16054,13 +16054,14 @@ function _vStoreCheck(force) {
   var today = _today();
   var userStores = _getUserStores();
 
-  if (!force && _scCache.tasks && (Date.now() - _scCache.ts < 20000)) {
+  // Agar already content hai to loading mat dikhao
+  var hasContent = cont.querySelector('#scList') || cont.innerText.indexOf('%') > -1;
+  if (!force && hasContent && _scCache.tasks && (Date.now() - _scCache.ts < 15000)) {
     _renderStoreUI(_scCache.scores, _scCache.tasks, userStores);
     return;
   }
 
-  // Soft loading - keep existing content if any
-  if (!cont.querySelector('#scList')) {
+  if (!hasContent) {
     cont.innerHTML = '<div style="padding:40px;text-align:center;color:#64748b">Loading...</div>';
   }
 
@@ -16068,7 +16069,6 @@ function _vStoreCheck(force) {
     var scores = (scoreRes && scoreRes.scores) || {};
     _gas('getStoreChecklist', [today, 'All'], function (res) {
       var tasks = (res && res.tasks) || [];
-      // Filter tasks by user stores
       tasks = tasks.filter(function (t) {
         return userStores.indexOf(String(t.Store)) > -1;
       });
@@ -16191,6 +16191,9 @@ function _submitMark(rowId, needPhoto) {
     _toast(e.message || 'Error', 'err');
     _vStoreCheck(true);
   });
+
+   _scCache.ts = 0;
+_vStoreCheck(true); // soft refresh
 }
 
 function _renderStoreUI(scores, tasks, userStores) {
@@ -16223,7 +16226,12 @@ function _renderStoreUI(scores, tasks, userStores) {
 
 function _scSwitch(store) {
   window._scActiveStore = store;
-  _vStoreCheck(true);
+  // Instant switch from cache
+  if (_scCache.tasks) {
+    _renderStoreUI(_scCache.scores, _scCache.tasks, _getUserStores());
+  } else {
+    _vStoreCheck(true);
+  }
 }
 
 
