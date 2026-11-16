@@ -15922,7 +15922,7 @@ var _scCache = { scores: null, tasks: null, ts: 0 };
 
 
 
-(tasks) {
+function _renderStoreTasks(tasks) {
   if (!tasks || !tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
 
   function fmt(hm) {
@@ -16225,6 +16225,5 @@ function _scSwitch(store) {
   window._scActiveStore = store;
   _vStoreCheck(true);
 }
-
 
 
