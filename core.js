@@ -4466,11 +4466,11 @@ var TABS_DELEG = [
 
 function _vDeleg() {
   var isManager = _isManager();
-  var at = _ST || 'dmine';
-  // Staff sees only "Assigned to Me"; Managers see all tabs
-  var tabs = isManager
-    ? TABS_DELEG
-    : [{ id: 'dmine', lbl: '<i class="fas fa-inbox"></i> Assigned to Me' }];
+  var at = localStorage.getItem('delegTab') || _ST || 'dmine';
+  if (!isManager) at = 'dmine';
+  _ST = at;
+
+  var tabs = isManager ? TABS_DELEG : [{ id: 'dmine', lbl: '<i class="fas fa-inbox"></i> Assigned to Me' }];
 
   document.getElementById('content').innerHTML =
     '<div class="mod-head">' +
@@ -4489,7 +4489,7 @@ function _vDeleg() {
   if (at === 'dmine') _loadDMine();
   else if (at === 'dout' && isManager) _loadDOut();
   else if (at === 'dall' && isManager) _loadDAll();
-  if (_ST) setTimeout(function () { _switchTab(_ST); }, 30);
+  setTimeout(function () { _switchTab(at); }, 30);
 }
 
 function _loadDelegDoers() {
@@ -4755,6 +4755,7 @@ function _loadDAll() {
 
     // Actions
     '<div style="display:flex;gap:6px;margin-left:auto">' +
+    '<button class="btn btn-sm btn-outline" onclick="_exportDeleg()"><i class="fas fa-download"></i> Export</button>' +
     '<button class="btn btn-sm btn-outline" onclick="_dallClearFilters()" title="Clear filters"><i class="fas fa-filter-circle-xmark"></i></button>' +
     '<button class="btn btn-sm" onclick="_loadDAllFilter()" title="Refresh"><i class="fas fa-rotate-right"></i></button>' +
     '</div>' +
@@ -11591,7 +11592,10 @@ function _mkPanes(tabs, active, contents) {
 }
 
 function _switchTab(tabId) {
-  _ST = tabId;
+ if (tabId && (tabId === 'dmine' || tabId === 'dout' || tabId === 'dcr' || tabId === 'dall')) {
+    localStorage.setItem('delegTab', tabId);
+    _ST = tabId;
+  }
 
   // Tab buttons
   document.querySelectorAll('.tab').forEach(function (el) {
@@ -16233,5 +16237,22 @@ function _scSwitch(store) {
     _vStoreCheck(true);
   }
 }
+
+function _exportDeleg() {
+  var list = document.getElementById('dallList');
+  if (!list) return;
+  var cards = list.querySelectorAll('.dcard');
+  var csv = 'Task,Assigned To,Due Date,Status\n';
+  cards.forEach(function (c) {
+    var title = (c.querySelector('.dc-title') || {}).innerText || '';
+    var meta = (c.querySelector('.dc-meta') || {}).innerText || '';
+    csv += '"' + title.replace(/"/g, '""') + '","' + meta.replace(/"/g, '""') + '"\n';
+  });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = 'Delegation_' + _today() + '.csv';
+  a.click();
+}
+
 
 
