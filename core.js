@@ -15922,7 +15922,7 @@ var _scCache = { scores: null, tasks: null, ts: 0 };
 
 
 
-function _renderStoreTasks(tasks) {
+(tasks) {
   if (!tasks || !tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
 
   function fmt(hm) {
@@ -16226,21 +16226,5 @@ function _scSwitch(store) {
   _vStoreCheck(true);
 }
 
-function _renderStoreTasks(tasks) {
-  if (!tasks || !tasks.length) return '<div style="padding:32px;text-align:center;color:#999">No tasks</div>';
-  return tasks.map(function (t) {
-    var done = String(t.Status) === 'Done';
-    var photo = t['Photo_URL'] || t['Photo URL'] || '';
-    return '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
-      '<div style="flex:1">' +
-        '<div style="font-weight:600">' + _esc(t.Task || '') + '</div>' +
-        '<div style="font-size:12px;color:#666">' + _esc(t.Store || '') + ' · ' + _esc(t.Deadline || '') + '</div>' +
-        (done ? '<div style="font-size:12px;color:#10b981">✓ ' + _esc(t['Completed By Name'] || '') + '</div>' : '') +
-      '</div>' +
-      (done
-        ? (photo ? '<a href="' + photo + '" target="_blank" class="btn btn-sm btn-outline">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:4px 10px;border-radius:12px;font-size:12px">Done</span>')
-        : '<button class="btn btn-sm btn-primary" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
-      '</div>';
-  }).join('');
-}
+
 
