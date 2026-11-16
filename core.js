@@ -3047,7 +3047,6 @@ var TABS_CHECK = [
 ];
 
 function _vCheck() {
-  var at = _ST || 'ctoday';
   var tabs = [], panes = [];
 
   tabs.push({ id: 'ctoday', lbl: '<i class="fas fa-calendar-day"></i> Today' });
@@ -3065,6 +3064,12 @@ function _vCheck() {
     panes.push('<div id="cmteamPane">' + _cmTeamForm() + '</div>');
   }
 
+  // Remember last tab
+  var at = localStorage.getItem('checkTab') || _ST || 'ctoday';
+  var validIds = tabs.map(function (t) { return t.id; });
+  if (validIds.indexOf(at) === -1) at = 'ctoday';
+  _ST = at;
+
   document.getElementById('content').innerHTML =
     '<div class="mod-head">' +
     '<div><div class="mod-title">Checklist</div><div class="mod-sub">KRA / KPI daily task tracker</div></div>' +
@@ -3080,7 +3085,7 @@ function _vCheck() {
   else if (at === 'chist') _loadHist();
   else if (at === 'csetup' && _isManager()) _loadSetupTasks();
   else if (at === 'cmteam' && _isMarkAttendanceAllowed()) _loadTeamChecklist();
-  if (_ST) setTimeout(function () { _switchTab(_ST); }, 30);
+  setTimeout(function () { _switchTab(at); }, 30);
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -11602,6 +11607,10 @@ if (tabId && ['amy','areg','arega','amteam'].indexOf(tabId) > -1) {
   if (tabId && ['dmine','dout','dcr','dall'].indexOf(tabId) > -1) {
     localStorage.setItem('delegTab', tabId);
   }
+  if (tabId && ['ctoday','cweek','chist','csetup','cmteam'].indexOf(tabId) > -1) {
+  localStorage.setItem('checkTab', tabId);
+}
+
   _ST = tabId;
 
   // Tab buttons
