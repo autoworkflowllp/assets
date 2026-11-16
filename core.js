@@ -16072,6 +16072,32 @@ function _vStoreCheck(force) {
   });
 }
 
+
+
+function _vStoreAnalytics() {
+  var role = String(_U.role || '').toUpperCase();
+  if (!['OWNER', 'MANAGER', 'ADMIN', 'EA'].includes(role)) {
+    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
+    return;
+  }
+  var userStores = _getUserStores();
+  var cont = document.getElementById('content');
+  var today = _today();
+  var from = _daysLater(-6);
+  var opts = userStores.map(function (s) { return '<option>' + s + '</option>'; }).join('');
+  cont.innerHTML = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">' +
+    '<input type="date" id="saFrom" value="' + from + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
+    '<input type="date" id="saTo" value="' + today + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
+    '<select id="saStore" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0"><option value="All">All My Stores</option>' + opts + '</select>' +
+    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button></div>' +
+    '<div id="saResult"></div>';
+  _loadStoreAnalytics();
+}
+
+
+
+
+
 function _renderStoreUI(scores, tasks, userStores) {
   var cont = document.getElementById('content');
   var active = window._scActiveStore || userStores[0] || 'Bandra';
@@ -16104,25 +16130,61 @@ function _scSwitch(store) {
   _vStoreCheck();
 }
 
+function _renderStoreTasks(tasks) {
+  if (!tasks.length) return '<div style="padding:32px;text-align:center;color:#94a3b8">No tasks</div>';
 
-function _vStoreAnalytics() {
-  var role = String(_U.role || '').toUpperCase();
-  if (!['OWNER', 'MANAGER', 'ADMIN', 'EA'].includes(role)) {
-    document.getElementById('content').innerHTML = '<div class="empty-state">Access denied</div>';
-    return;
+  function fmtTime(hm) {
+    if (!hm || hm === 'As needed') return hm || '-';
+    var p = String(hm).split(':');
+    var h = parseInt(p[0], 10);
+    var m = p[1] || '00';
+    if (isNaN(h)) return hm;
+    var ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + ap;
   }
-  var userStores = _getUserStores();
-  var cont = document.getElementById('content');
-  var today = _today();
-  var from = _daysLater(-6);
-  var opts = userStores.map(function (s) { return '<option>' + s + '</option>'; }).join('');
-  cont.innerHTML = '<div style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap">' +
-    '<input type="date" id="saFrom" value="' + from + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
-    '<input type="date" id="saTo" value="' + today + '" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0">' +
-    '<select id="saStore" style="padding:8px;border-radius:8px;border:1px solid #e2e8f0"><option value="All">All My Stores</option>' + opts + '</select>' +
-    '<button class="btn btn-primary btn-sm" onclick="_loadStoreAnalytics()">Apply</button></div>' +
-    '<div id="saResult"></div>';
-  _loadStoreAnalytics();
+
+  return tasks.map(function (t) {
+    var done = String(t.Status) === 'Done';
+    var planned = fmtTime(t.Deadline);
+    var actualRaw = done && t['Completed At'] ? String(t['Completed At']).slice(11, 16) : '';
+    var actual = actualRaw ? fmtTime(actualRaw) : '';
+    var photoLink = t['Photo_URL'] || t['Photo URL'] || '';
+
+    var extra = '';
+    if (done) {
+      extra += '<div style="font-size:13px;color:#10b981;margin-top:4px">Done by : ✓ ' + _esc(t['Completed By Name'] || '') + '</div>';
+      if (t['Remark']) {
+        extra += '<div style="font-size:12px;color:#64748b;margin-top:3px;font-style:italic">Remark: ' + _esc(t['Remark']) + '</div>';
+      }
+      if (actualRaw && t.Deadline && t.Deadline !== 'As needed') {
+        var pp = String(t.Deadline).split(':');
+        var aa = actualRaw.split(':');
+        var pMin = (parseInt(pp[0]) || 0) * 60 + (parseInt(pp[1]) || 0);
+        var aMin = (parseInt(aa[0]) || 0) * 60 + (parseInt(aa[1]) || 0);
+        var diff = aMin - pMin;
+        if (diff > 0) {
+          var dh = Math.floor(diff / 60), dm = diff % 60;
+          extra += '<div style="font-size:12px;color:#ef4444;margin-top:2px">Delay: ' + (dh < 10 ? '0' : '') + dh + ':' + (dm < 10 ? '0' : '') + dm + ':00 (Actual ' + actual + ')</div>';
+        } else {
+          extra += '<div style="font-size:12px;color:#10b981;margin-top:2px">On time · Actual ' + actual + '</div>';
+        }
+      } else if (actual) {
+        extra += '<div style="font-size:12px;color:#64748b;margin-top:2px">Done at ' + actual + '</div>';
+      }
+    }
+
+    return '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #f1f5f9">' +
+      '<div style="flex:1">' +
+        '<div style="font-weight:600;font-size:15px">' + _esc(t.Task) + '</div>' +
+        '<div style="font-size:13px;color:#475569;margin-top:4px">Store : ' + _esc(t.Store) + ' · Planned ' + planned + '</div>' +
+        extra +
+      '</div>' +
+      (done
+        ? (photoLink ? '<a href="' + photoLink + '" target="_blank" class="btn btn-sm btn-outline" style="border-radius:8px">View Photo</a>' : '<span style="background:#dcfce7;color:#166534;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600">Done</span>')
+        : '<button class="btn btn-sm btn-primary" style="border-radius:8px" onclick="_openMarkModal(\'' + _esc(t['Row ID']) + '\',\'' + _esc(t['Photo Required'] || 'No') + '\')">Done</button>') +
+      '</div>';
+  }).join('');
 }
 
 function _openMarkModal(rowId, photoReq) {
@@ -16175,7 +16237,6 @@ function _openMarkModal(rowId, photoReq) {
       c.height = v.videoHeight || 480;
       var ctx = c.getContext('2d');
       ctx.drawImage(v, 0, 0, c.width, c.height);
-      // Overlay
       ctx.fillStyle = 'rgba(0,0,0,.65)';
       ctx.fillRect(8, c.height - 70, c.width - 16, 60);
       ctx.fillStyle = '#fff';
