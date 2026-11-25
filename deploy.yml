@@ -1,4 +1,4 @@
-name: Deploy Joolry Daily to GitHub Pages
+name: Deploy asset Daily to GitHub Pages
 
 on:
   push:
