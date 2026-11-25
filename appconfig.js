@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════════════════════════════════════
-// appconfig.js — Joolry Daily App
+// appconfig.js — asset Daily App
 // ─────────────────────────────────────────────────────────────────────────
 // SIRF YAHAN GAS_URL CHANGE KARO — index.html ya app.js mein kuch nahi
 // ════════════════════════════════════════════════════════════════════════════
@@ -12,12 +12,12 @@ window.APP_CONFIG = {
   GAS_URL: '',   // not used any more — browser talks to /api/rpc only
 
   // ── App Info ────────────────────────────────────────────────────────────
-  APP_NAME:    'Joolry Daily',
+  APP_NAME:    'asset Daily',
   APP_VERSION: '1.0',
-  APP_COMPANY: 'Joolry',
+  APP_COMPANY: 'asset',
 
   // ── Session ─────────────────────────────────────────────────────────────
-  SESSION_KEY:     'joolry_session_v1',
+  SESSION_KEY:     'asset_session_v1',
   SESSION_HOURS:   168,   // 7 days; can still override via AppConfig sheet
 
   // ── API Timeouts ─────────────────────────────────────────────────────────
