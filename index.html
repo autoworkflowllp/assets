@@ -9,17 +9,17 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Joolry Daily">
+  <meta name="apple-mobile-web-app-title" content="asset Daily">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" type="image/png" href="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461">
-  <link rel="apple-touch-icon" href="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461">
-  <link rel="shortcut icon" href="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461">
-  <title>AUTOWORKFLOW</title>
+  <link rel="icon" type="image/png" href="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461">
+  <link rel="apple-touch-icon" href="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461">
+  <link rel="shortcut icon" href="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461">
+  <title>asset Daily</title>
 
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://joolry.in">
+  <link rel="preconnect" href="https://asset.in">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <!-- External Assets -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -40,7 +40,7 @@
   <script>
     (function () {
       try {
-        var raw = localStorage.getItem('joolry_session_v1');
+        var raw = localStorage.getItem('asset_session_v1');
         if (raw) {
           var s = JSON.parse(raw);
           var validName = s && s.user && s.user.name && s.user.name !== 'User' && s.user.name !== 'Staff' && s.user.name.trim() !== '';
@@ -69,14 +69,14 @@
     <!-- Mobile top brand (small screens only — CSS handles hide/show) -->
     <div class="l-mob-brand">
       <div class="l-mob-logo">
-        <img src="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461" alt="Joolry"
-          onerror="this.parentElement.innerHTML='<span class=\'l-mob-txt\'>Joolry</span>'">
+        <img src="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461" alt="asset"
+          onerror="this.parentElement.innerHTML='<span class=\'l-mob-txt\'>asset</span>'">
       </div>
     </div>
 
     <div class="lbox">
       <div class="l-logo-wrap" id="lDeskLogo">
-        <img src="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461" alt="Joolry"
+        <img src="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461" alt="asset"
           onerror="this.style.display='none';document.getElementById('lgFallback').style.display='flex'">
         <div class="l-logo-fallback" id="lgFallback" style="display:none">JL</div>
       </div>
@@ -86,7 +86,7 @@
 
       <div class="l-field">
         <label>Email</label>
-        <input type="email" id="femail" placeholder="you@joolry.co.in" autocomplete="email"
+        <input type="email" id="femail" placeholder="you@asset.co.in" autocomplete="email"
           onkeydown="if(event.key==='Enter')document.getElementById('fpass').focus()">
         <span class="l-ico"><i class="fas fa-envelope"></i></span>
       </div>
@@ -107,7 +107,7 @@
         Sign In
       </button>
       <div class="l-err" id="loginErr"></div>
-      <div class="l-footer">© Joolry</div>
+      <div class="l-footer">© asset</div>
     </div>
   </div>
 
@@ -129,12 +129,12 @@
         <div
           style="position:absolute;inset:-5px;border-radius:50%;border:3.5px solid transparent;border-top-color:#111111;border-right-color:#B76E79;animation:fkLogoSpin .9s linear infinite">
         </div>
-        <img src="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461" alt="Joolry"
+        <img src="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461" alt="asset"
           style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:14px;border-radius:50%"
           onerror="this.style.display='none'">
       </div>
       <div style="color:#fff;font-size:22px;font-weight:900;letter-spacing:-.4px;text-align:center;
-        text-shadow:0 2px 12px rgba(0,0,0,.2)">Joolry Daily App</div>
+        text-shadow:0 2px 12px rgba(0,0,0,.2)">asset Daily App</div>
       <div id="fkSplashMsg" style="color:rgba(255,255,255,.8);font-size:13.5px;font-weight:600;
         text-align:center;letter-spacing:.2px;margin-top:4px">Loading your workspace…</div>
       <div style="display:flex;gap:6px;margin-top:12px">
@@ -144,7 +144,7 @@
       </div>
     </div>
     <div style="position:absolute;bottom:40px;color:rgba(255,255,255,.45);font-size:11px">
-      © 2026 Joolry &nbsp;·&nbsp; All rights reserved
+      © 2026 asset &nbsp;·&nbsp; All rights reserved
     </div>
   </div>
 
@@ -167,10 +167,10 @@
     <aside class="sb" id="sb">
       <div class="sb-hd">
         <div class="sb-brand">
-          <img src="https://joolry.in/cdn/shop/files/Joolry_Logo_160x.png?v=1661766461" alt="Joolry"
+          <img src="https://asset.in/cdn/shop/files/asset_Logo_160x.png?v=1661766461" alt="asset"
             onerror="this.style.display='none'">
           <div>
-            <div class="sb-brand-txt">Joolry</div>
+            <div class="sb-brand-txt">asset</div>
             <div class="sb-brand-ver" style="display:none !important"></div>
           </div>
         </div>
@@ -180,7 +180,7 @@
             <div class="online-dot"></div>
           </div>
           <div class="sb-prof-info">
-            <div class="sb-name" id="sbName">Joolry Staff</div>
+            <div class="sb-name" id="sbName">asset Staff</div>
             <div class="sb-role" id="sbRole">Staff</div>
           </div>
           <i class="fas fa-chevron-right" style="font-size:10px;color:#475569;margin-left:auto;flex-shrink:0"></i>
@@ -260,8 +260,8 @@
       </nav>
 
       <div class="sb-ft">
-        <div class="sb-ft-txt">Joolry Daily</div>
-        <div class="sb-ft-copy">&copy; 2026 Joolry. All rights reserved.</div>
+        <div class="sb-ft-txt">asset Daily</div>
+        <div class="sb-ft-copy">&copy; 2026 asset. All rights reserved.</div>
       </div>
     </aside>
 
