@@ -1,48 +1,34 @@
-// ════════════════════════════════════════════════════════════════════════════
-// appconfig.js — asset Daily App
-// ─────────────────────────────────────────────────────────────────────────
-// SIRF YAHAN GAS_URL CHANGE KARO — index.html ya app.js mein kuch nahi
-// ════════════════════════════════════════════════════════════════════════════
 
 window.APP_CONFIG = {
 
-  // ── GAS Web App URL ────────────────────────────────────────────────────
-  // Har nayi deployment ke baad sirf yahan update karo
-  // TODO: Deploy new GAS and paste URL here
-  GAS_URL: '',   // not used any more — browser talks to /api/rpc only
+  // Application Information
+  APP_NAME: 'ASSET',
+  APP_VERSION: '2.0',
+  APP_COMPANY: 'ASSET Management',
 
-  // ── App Info ────────────────────────────────────────────────────────────
-  APP_NAME:    'asset Daily',
-  APP_VERSION: '1.0',
-  APP_COMPANY: 'asset',
+  // API
+  API_URL: '/api/rpc',
 
-  // ── Session ─────────────────────────────────────────────────────────────
-  SESSION_KEY:     'asset_session_v1',
-  SESSION_HOURS:   168,   // 7 days; can still override via AppConfig sheet
+  // Session
+  SESSION_KEY: 'asset_management_session_v1',
+  SESSION_HOURS: 168,
 
-  // ── API Timeouts ─────────────────────────────────────────────────────────
-  DEFAULT_TIMEOUT: 30000,   // 30s
-  LONG_TIMEOUT:    60000,   // 60s for analytics / checklist generate
+  // Timeouts
+  DEFAULT_TIMEOUT: 30000,
+  LONG_TIMEOUT: 60000,
 
-  // ── Polling ─────────────────────────────────────────────────────────────
-  POLL_INTERVAL:   30000,   // 30s badge / uptime poll
+  // Polling
+  POLL_INTERVAL: 30000,
+
+  // Application Theme
+  THEME: {
+    primary: '#111827',
+    secondary: '#172235',
+    accent: '#D9BD83',
+    background: '#F5F0E6',
+    surface: '#FFFDF8'
+  }
 
 };
 
-// Convenience shortcut — app.js uses window.GAS_URL
-window.GAS_URL = window.APP_CONFIG.GAS_URL;
-
-
-// Firebase client (Phase 2 live version) — Project settings → Web app se bharo
-window.FIREBASE_WEB = {
-  apiKey: 'PASTE_API_KEY',
-  authDomain: 'YOUR_PROJECT.firebaseapp.com',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_PROJECT.appspot.com',
-  messagingSenderId: 'PASTE',
-  appId: 'PASTE'
-};
-
-
-
-
+window.GAS_URL = '';
