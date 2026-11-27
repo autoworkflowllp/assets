@@ -7,6 +7,13 @@ const { fromSnapshot, normDate } = require('./_snapServe');
 const isRead = (fn) => /^(get|validate)/.test(fn);
 
 const ALLOWED = new Set([
+'getAssets',
+'createAsset',
+'updateAsset',
+'assignAsset',
+'returnAsset',
+'getAssetHistory',
+'getAssetDashboard',
   'approveLeaveRequest', 'approveRegularization', 'cancelLeaveRequest', 'changePassword',
   'createDelegation', 'deactivateTask', 'deleteAnnouncement',
   'getAllAppConfigForFrontend', 'getAllData', 'getAllDelegations',
