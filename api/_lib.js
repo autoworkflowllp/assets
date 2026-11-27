@@ -636,7 +636,16 @@ function applyWritePatch(fn, clientArgs, gasResult, email) {
       });
       return hit;
     }
-
+// ASSET writes: data is managed directly in Google Sheets.
+// Do not rebuild the existing Daily App snapshot.
+if ([
+  'createAsset',
+  'updateAsset',
+  'assignAsset',
+  'returnAsset'
+].includes(fn)) {
+  return true;
+}
     // Unknown write → signal caller to rely on full rebuild only
     return false;
   });
